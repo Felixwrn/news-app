@@ -84,4 +84,84 @@ body{
     background:#7c3aed;
     color:white;
     text-decoration:none;
+    border-radius:16px;
+}
+
+.loading{
+    text-align:center;
+    padding:60px;
+    color:#777;
+    font-size:22px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>WRNlabs News</h1>
+    <p>Global live news feed powered by NewsAPI</p>
+</div>
+
+<div class="loading" id="loading">
+    Loading latest news...
+</div>
+
+<div class="news-container" id="newsContainer"></div>
+
+<script>
+
+const apiKey = "36ec972c358a4e279d19145c7752f8ef";
+
+fetch(`https://newsapi.org/v2/top-headlines?country=us&pageSize=12&apiKey=${apiKey}`)
+.then(response => response.json())
+.then(data => {
+
+    document.getElementById("loading").style.display = "none";
+
+    const container = document.getElementById("newsContainer");
+
+    data.articles.forEach(article => {
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+
+        <img src="${article.urlToImage || 'https://via.placeholder.com/400x200?text=WRNlabs'}">
+
+        <div class="card-content">
+
+            <span class="source">${article.source.name}</span>
+
+            <h2>${article.title}</h2>
+
+            <p>${article.description || 'No description available.'}</p>
+
+            <a class="btn" href="${article.url}" target="_blank">
+                Read Article
+            </a>
+
+        </div>
+
+        `;
+
+        container.appendChild(card);
+
+    });
+
+})
+.catch(error => {
+
+    document.getElementById("loading").innerHTML =
+    "Failed to load news feed.";
+
+    console.error(error);
+
+});
+
+</script>
+
+</body>
 </html>
