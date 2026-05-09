@@ -4,94 +4,131 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>WRNlabs News</title>
+<title>WRN News</title>
 
 <style>
 
 body{
     margin:0;
-    background:#000;
+    background:#000000;
     color:white;
     font-family:Arial,sans-serif;
 }
 
+/* Header */
+
 .header{
     padding:30px;
-    border-bottom:1px solid #222;
+    border-bottom:1px solid #1a1a1a;
+    background:#050505;
+    position:sticky;
+    top:0;
+    z-index:100;
 }
 
 .header h1{
     margin:0;
     color:#7c3aed;
     font-size:42px;
+    letter-spacing:2px;
 }
 
 .header p{
-    color:#888;
-    margin-top:10px;
+    color:#777;
+    margin-top:8px;
 }
+
+/* News Grid */
 
 .news-container{
-    padding:20px;
+    padding:25px;
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-    gap:20px;
+    gap:25px;
 }
 
+/* Cards */
+
 .card{
-    background:#111;
-    border:1px solid #222;
-    border-radius:24px;
+    background:#111111;
+    border:1px solid #222222;
+    border-radius:28px;
     overflow:hidden;
     transition:0.3s;
+    box-shadow:0 0 20px rgba(124,58,237,0.08);
 }
 
 .card:hover{
+    transform:translateY(-6px);
     border-color:#7c3aed;
-    transform:translateY(-5px);
 }
+
+/* Image */
 
 .card img{
     width:100%;
-    height:200px;
+    height:220px;
     object-fit:cover;
 }
 
+/* Content */
+
 .card-content{
-    padding:20px;
-}
-
-.card h2{
-    font-size:24px;
-    margin-top:0;
-}
-
-.card p{
-    color:#aaa;
-    line-height:1.5;
+    padding:24px;
 }
 
 .source{
     color:#7c3aed;
-    margin-bottom:15px;
-    display:block;
+    font-size:14px;
+    letter-spacing:1px;
+    text-transform:uppercase;
 }
+
+.card h2{
+    font-size:28px;
+    line-height:1.3;
+    margin-top:14px;
+}
+
+.card p{
+    color:#aaaaaa;
+    line-height:1.6;
+}
+
+/* Button */
 
 .btn{
     display:inline-block;
-    margin-top:15px;
-    padding:12px 24px;
+    margin-top:18px;
+    padding:14px 24px;
     background:#7c3aed;
     color:white;
     text-decoration:none;
-    border-radius:16px;
+    border-radius:18px;
+    transition:0.3s;
 }
+
+.btn:hover{
+    background:#9254ff;
+}
+
+/* Loading */
 
 .loading{
     text-align:center;
-    padding:60px;
-    color:#777;
-    font-size:22px;
+    padding:80px;
+    color:#666;
+    font-size:24px;
+}
+
+/* Footer */
+
+.footer{
+    padding:30px;
+    text-align:center;
+    color:#555;
+    border-top:1px solid #1a1a1a;
+    margin-top:40px;
 }
 
 </style>
@@ -100,8 +137,8 @@ body{
 <body>
 
 <div class="header">
-    <h1>WRNlabs News</h1>
-    <p>Global live news feed powered by NewsAPI</p>
+    <h1>WRN News</h1>
+    <p>Global RSS News Feed</p>
 </div>
 
 <div class="loading" id="loading">
@@ -110,37 +147,62 @@ body{
 
 <div class="news-container" id="newsContainer"></div>
 
+<div class="footer">
+    WRNlabs News System
+</div>
+
 <script>
 
-const apiKey = "36ec972c358a4e279d19145c7752f8ef";
+const rssUrl =
+"https://www.tagesschau.de/index~rss2.xml";
 
-fetch(`https://newsapi.org/v2/top-headlines?country=us&pageSize=12&apiKey=${apiKey}`)
+const apiUrl =
+`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+fetch(apiUrl)
 .then(response => response.json())
 .then(data => {
 
     document.getElementById("loading").style.display = "none";
 
-    const container = document.getElementById("newsContainer");
+    const container =
+    document.getElementById("newsContainer");
 
-    data.articles.forEach(article => {
+    data.items.forEach(article => {
 
         const card = document.createElement("div");
+
         card.className = "card";
 
         card.innerHTML = `
 
-        <img src="${article.urlToImage || 'https://via.placeholder.com/400x200?text=WRNlabs'}">
+        <img src="${
+            article.thumbnail ||
+            'https://via.placeholder.com/600x300?text=WRNlabs'
+        }">
 
         <div class="card-content">
 
-            <span class="source">${article.source.name}</span>
+            <div class="source">
+                TAGESSCHAU
+            </div>
 
             <h2>${article.title}</h2>
 
-            <p>${article.description || 'No description available.'}</p>
+            <p>
+                ${
+                    article.description
+                    .replace(/<[^>]*>?/gm, '')
+                    .substring(0, 180)
+                }...
+            </p>
 
-            <a class="btn" href="${article.url}" target="_blank">
-                Read Article
+            <a class="btn"
+               href="${article.link}"
+               target="_blank">
+
+               Read Article
+
             </a>
 
         </div>
@@ -155,7 +217,7 @@ fetch(`https://newsapi.org/v2/top-headlines?country=us&pageSize=12&apiKey=${apiK
 .catch(error => {
 
     document.getElementById("loading").innerHTML =
-    "Failed to load news feed.";
+    "Failed to load RSS feed.";
 
     console.error(error);
 
