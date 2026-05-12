@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>WRN News TV</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 90px;
+      border-bottom: 1px solid #181818;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      background: rgba(0,0,0,0.9);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #a855f7;
+      box-shadow: 0 0 20px #a855f7;
+    }
+
+    .logo h1 {
+      color: #a855f7;
+      font-size: 42px;
+    }
+
+    .time {
+      text-align: right;
+    }
+
+    .time h2 {
+      font-size: 32px;
+    }
+
+    .time p {
+      color: #777;
+      margin-top: 4px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      padding: 30px;
+      height: calc(100vh - 90px);
+    }
+
+    .hero {
+      background: linear-gradient(to bottom right, rgba(168,85,247,0.25), #050505);
+      border: 1px solid #1d1d1d;
+      border-radius: 35px;
+      padding: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .breaking {
+      background: #a855f7;
+      color: white;
+      display: inline-block;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 18px;
+      margin-bottom: 30px;
+      font-weight: bold;
+    }
+
+    .hero h2 {
+      font-size: 64px;
+      line-height: 1.15;
+      max-width: 1100px;
+    }
+
+    .hero p {
+      margin-top: 25px;
+      color: #bbb;
+      font-size: 24px;
+      max-width: 900px;
+      line-height: 1.5;
+    }
+
+    .sidebar {
+      background: #080808;
+      border: 1px solid #1d1d1d;
+      border-radius: 35px;
+      padding: 30px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar h3 {
+      font-size: 34px;
+      margin-bottom: 25px;
+    }
+
+    .news-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .news-card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 25px;
+      padding: 20px;
+      transition: 0.2s;
+    }
+
+    .news-card:hover {
+      border-color: #a855f7;
+    }
+
+    .category {
+      color: #a855f7;
+      font-size: 14px;
+      margin-bottom: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .headline {
+      font-size: 24px;
+      line-height: 1.4;
+    }
+
+    .footer {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid #1d1d1d;
+      color: #777;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <div class="logo">
+      <div class="dot"></div>
+      <h1>WRN News TV</h1>
+    </div>
+
+    <div class="time">
+      <h2 id="clock">20:15</h2>
+      <p>LIVE MODE</p>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <div class="hero">
+      <div class="breaking">BREAKING NEWS</div>
+
+      <h2 id="mainHeadline">
+        WRN News lädt aktuelle Nachrichten...
+      </h2>
+
+      <p>
+        Live Headlines aus RSS Feeds optimiert für Fernseher und Smart Displays.
+      </p>
+    </div>
+
+    <div class="sidebar">
+      <h3>Live Headlines</h3>
+
+      <div class="news-list" id="newsList"></div>
+
+      <div class="footer">
+        WRN Network • Futuristic News Platform
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function updateClock() {
+      const now = new Date();
+
+      const time = now.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      document.getElementById("clock").innerText = time;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    async function loadRSS() {
+
+      const feed =
+        "https://api.rss2json.com/v1/api.json?rss_url=https://www.tagesschau.de/infoservices/rss2";
+
+      try {
+
+        const response = await fetch(feed);
+        const data = await response.json();
+
+        const newsList = document.getElementById("newsList");
+
+        newsList.innerHTML = "";
+
+        if (data.items.length > 0) {
+          document.getElementById("mainHeadline").innerText =
+            data.items[0].title;
+        }
+
+        data.items.slice(0, 8).forEach(item => {
+
+          const card = document.createElement("div");
+          card.className = "news-card";
+
+          card.innerHTML = `
+            <div class="category">NEWS</div>
+            <div class="headline">${item.title}</div>
+          `;
+
+          newsList.appendChild(card);
+        });
+
+      } catch (e) {
+        console.error("RSS Fehler", e);
+      }
+    }
+
+    loadRSS();
+
+    setInterval(loadRSS, 300000);
+  </script>
+
+</body>
+</html>
