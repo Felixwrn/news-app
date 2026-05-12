@@ -1,263 +1,375 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>WRN News TV</title>
+<title>WRN News TV</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<style>
 
-    body {
-      background: #000;
-      color: white;
-      font-family: Arial, sans-serif;
-      overflow: hidden;
-    }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-    .topbar {
-      height: 90px;
-      border-bottom: 1px solid #181818;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 40px;
-      background: rgba(0,0,0,0.9);
-    }
+body{
+    background:#000000;
+    color:white;
+    font-family:Arial,sans-serif;
+    overflow:hidden;
+}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
+/* HEADER */
 
-    .dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #a855f7;
-      box-shadow: 0 0 20px #a855f7;
-    }
+.header{
+    height:90px;
+    padding:0 40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid #1a1a1a;
+    background:#050505;
+}
 
-    .logo h1 {
-      color: #a855f7;
-      font-size: 42px;
-    }
+.logo{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
 
-    .time {
-      text-align: right;
-    }
+.dot{
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:#7c3aed;
+    box-shadow:0 0 20px #7c3aed;
+}
 
-    .time h2 {
-      font-size: 32px;
-    }
+.logo h1{
+    font-size:42px;
+    color:#7c3aed;
+    letter-spacing:2px;
+}
 
-    .time p {
-      color: #777;
-      margin-top: 4px;
-    }
+.clock{
+    text-align:right;
+}
 
-    .layout {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 30px;
-      padding: 30px;
-      height: calc(100vh - 90px);
-    }
+.clock h2{
+    font-size:32px;
+}
 
-    .hero {
-      background: linear-gradient(to bottom right, rgba(168,85,247,0.25), #050505);
-      border: 1px solid #1d1d1d;
-      border-radius: 35px;
-      padding: 50px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
+.clock p{
+    color:#777;
+    margin-top:4px;
+}
 
-    .breaking {
-      background: #a855f7;
-      color: white;
-      display: inline-block;
-      padding: 12px 22px;
-      border-radius: 999px;
-      font-size: 18px;
-      margin-bottom: 30px;
-      font-weight: bold;
-    }
+/* LAYOUT */
 
-    .hero h2 {
-      font-size: 64px;
-      line-height: 1.15;
-      max-width: 1100px;
-    }
+.layout{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:30px;
+    padding:30px;
+    height:calc(100vh - 90px);
+}
 
-    .hero p {
-      margin-top: 25px;
-      color: #bbb;
-      font-size: 24px;
-      max-width: 900px;
-      line-height: 1.5;
-    }
+/* HERO */
 
-    .sidebar {
-      background: #080808;
-      border: 1px solid #1d1d1d;
-      border-radius: 35px;
-      padding: 30px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+.hero{
+    background:
+    linear-gradient(
+        to bottom right,
+        rgba(124,58,237,0.25),
+        #050505
+    );
 
-    .sidebar h3 {
-      font-size: 34px;
-      margin-bottom: 25px;
-    }
+    border:1px solid #1f1f1f;
+    border-radius:36px;
 
-    .news-list {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
-    }
+    padding:50px;
 
-    .news-card {
-      background: #111;
-      border: 1px solid #222;
-      border-radius: 25px;
-      padding: 20px;
-      transition: 0.2s;
-    }
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+}
 
-    .news-card:hover {
-      border-color: #a855f7;
-    }
+.breaking{
+    display:inline-block;
 
-    .category {
-      color: #a855f7;
-      font-size: 14px;
-      margin-bottom: 10px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
+    background:#7c3aed;
 
-    .headline {
-      font-size: 24px;
-      line-height: 1.4;
-    }
+    padding:12px 22px;
 
-    .footer {
-      margin-top: auto;
-      padding-top: 20px;
-      border-top: 1px solid #1d1d1d;
-      color: #777;
-      font-size: 14px;
-    }
-  </style>
+    border-radius:999px;
+
+    font-size:18px;
+    font-weight:bold;
+
+    margin-bottom:28px;
+}
+
+.hero h2{
+    font-size:64px;
+    line-height:1.15;
+    max-width:1100px;
+}
+
+.hero p{
+    margin-top:24px;
+    font-size:24px;
+    color:#aaaaaa;
+    max-width:850px;
+    line-height:1.5;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    background:#0a0a0a;
+
+    border:1px solid #1f1f1f;
+
+    border-radius:36px;
+
+    padding:30px;
+
+    display:flex;
+    flex-direction:column;
+
+    overflow:hidden;
+}
+
+.sidebar h3{
+    font-size:34px;
+    margin-bottom:24px;
+}
+
+/* NEWS */
+
+.news-list{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    overflow-y:auto;
+}
+
+.news-card{
+    background:#111111;
+
+    border:1px solid #222222;
+
+    border-radius:24px;
+
+    padding:22px;
+
+    transition:0.3s;
+}
+
+.news-card:hover{
+    border-color:#7c3aed;
+}
+
+.category{
+    color:#7c3aed;
+
+    font-size:13px;
+
+    letter-spacing:1px;
+
+    margin-bottom:10px;
+
+    font-weight:bold;
+}
+
+.headline{
+    font-size:24px;
+    line-height:1.4;
+}
+
+/* FOOTER */
+
+.footer{
+    margin-top:auto;
+
+    padding-top:20px;
+
+    border-top:1px solid #1f1f1f;
+
+    color:#666666;
+
+    font-size:14px;
+}
+
+</style>
 </head>
 
 <body>
 
-  <div class="topbar">
+<!-- HEADER -->
+
+<div class="header">
+
     <div class="logo">
-      <div class="dot"></div>
-      <h1>WRN News TV</h1>
+        <div class="dot"></div>
+        <h1>WRN News TV</h1>
     </div>
 
-    <div class="time">
-      <h2 id="clock">20:15</h2>
-      <p>LIVE MODE</p>
+    <div class="clock">
+        <h2 id="clock">20:15</h2>
+        <p>LIVE MODE</p>
     </div>
-  </div>
 
-  <div class="layout">
+</div>
+
+<!-- MAIN -->
+
+<div class="layout">
+
+    <!-- LEFT -->
 
     <div class="hero">
-      <div class="breaking">BREAKING NEWS</div>
 
-      <h2 id="mainHeadline">
-        WRN News lädt aktuelle Nachrichten...
-      </h2>
+        <div class="breaking">
+            BREAKING NEWS
+        </div>
 
-      <p>
-        Live Headlines aus RSS Feeds optimiert für Fernseher und Smart Displays.
-      </p>
+        <h2 id="mainHeadline">
+            Loading latest headlines...
+        </h2>
+
+        <p>
+            Futuristic television news experience powered by WRN.
+        </p>
+
     </div>
+
+    <!-- RIGHT -->
 
     <div class="sidebar">
-      <h3>Live Headlines</h3>
 
-      <div class="news-list" id="newsList"></div>
+        <h3>Live Headlines</h3>
 
-      <div class="footer">
-        WRN Network • Futuristic News Platform
-      </div>
+        <div class="news-list" id="newsList"></div>
+
+        <div class="footer">
+            WRNlabs Television News Platform
+        </div>
+
     </div>
 
-  </div>
+</div>
 
-  <script>
-    function updateClock() {
-      const now = new Date();
+<script>
 
-      const time = now.toLocaleTimeString("de-DE", {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+/* CLOCK */
 
-      document.getElementById("clock").innerText = time;
-    }
+function updateClock(){
 
-    updateClock();
-    setInterval(updateClock, 1000);
+    const now = new Date();
 
-    async function loadRSS() {
+    const time =
+    now.toLocaleTimeString(
+        "de-DE",
+        {
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
 
-      const feed =
-        "https://api.rss2json.com/v1/api.json?rss_url=https://www.tagesschau.de/infoservices/rss2";
+    document
+    .getElementById("clock")
+    .innerText = time;
+}
 
-      try {
+updateClock();
 
-        const response = await fetch(feed);
-        const data = await response.json();
+setInterval(updateClock,1000);
 
-        const newsList = document.getElementById("newsList");
+/* RSS */
+
+const rssUrl =
+"https://www.tagesschau.de/index~rss2.xml";
+
+const apiUrl =
+`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+async function loadNews(){
+
+    try{
+
+        const response =
+        await fetch(apiUrl);
+
+        const data =
+        await response.json();
+
+        const newsList =
+        document.getElementById("newsList");
 
         newsList.innerHTML = "";
 
-        if (data.items.length > 0) {
-          document.getElementById("mainHeadline").innerText =
+        /* MAIN HEADLINE */
+
+        if(data.items.length > 0){
+
+            document
+            .getElementById("mainHeadline")
+            .innerText =
             data.items[0].title;
         }
 
-        data.items.slice(0, 8).forEach(item => {
+        /* SIDEBAR */
 
-          const card = document.createElement("div");
-          card.className = "news-card";
+        data.items
+        .slice(0,8)
+        .forEach(article => {
 
-          card.innerHTML = `
-            <div class="category">NEWS</div>
-            <div class="headline">${item.title}</div>
-          `;
+            const card =
+            document.createElement("div");
 
-          newsList.appendChild(card);
+            card.className =
+            "news-card";
+
+            card.innerHTML = `
+
+                <div class="category">
+                    NEWS
+                </div>
+
+                <div class="headline">
+                    ${article.title}
+                </div>
+
+            `;
+
+            newsList.appendChild(card);
+
         });
 
-      } catch (e) {
-        console.error("RSS Fehler", e);
-      }
+    }catch(error){
+
+        console.error(error);
+
+        document
+        .getElementById("mainHeadline")
+        .innerText =
+        "Failed to load RSS feed.";
+
     }
 
-    loadRSS();
+}
 
-    setInterval(loadRSS, 300000);
-  </script>
+loadNews();
+
+/* AUTO REFRESH */
+
+setInterval(loadNews,300000);
+
+</script>
 
 </body>
 </html>
