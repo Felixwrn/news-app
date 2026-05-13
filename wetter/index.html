@@ -32,8 +32,54 @@ body{
 
 .location{
     color:#777;
-    margin-bottom:40px;
+    margin-bottom:25px;
     font-size:20px;
+}
+
+/* WARNING */
+
+.warning{
+
+    margin-bottom:35px;
+
+    background:
+    linear-gradient(
+        90deg,
+        #ff3b30,
+        #ff9500
+    );
+
+    color:white;
+
+    padding:18px 24px;
+
+    border-radius:24px;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+    box-shadow:
+    0 0 30px rgba(255,80,0,0.35);
+
+    animation:
+    pulse 2s infinite;
+}
+
+@keyframes pulse{
+
+    0%{
+        opacity:1;
+    }
+
+    50%{
+        opacity:0.85;
+    }
+
+    100%{
+        opacity:1;
+    }
+
 }
 
 /* CURRENT WEATHER */
@@ -242,6 +288,12 @@ body{
         Standort wird geladen...
     </div>
 
+    <!-- WARNING -->
+
+    <div class="warning" id="warningBanner">
+        Lade Wetterwarnungen...
+    </div>
+
     <!-- CURRENT -->
 
     <div class="current">
@@ -379,7 +431,95 @@ async function loadLocation(lat, lon){
 
 }
 
-/* LOAD WEATHER */
+/* WARNINGS */
+
+async function loadWarnings(lat, lon){
+
+    try{
+
+        const api =
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode&timezone=auto`;
+
+        const response =
+        await fetch(api);
+
+        const data =
+        await response.json();
+
+        const banner =
+        document.getElementById("warningBanner");
+
+        const code =
+        data.daily.weathercode[0];
+
+        let text =
+        "✅ Keine Wetterwarnungen";
+
+        let bg =
+        "#1f1f1f";
+
+        if(code >= 95){
+
+            text =
+            "⛈ Gewitterwarnung aktiv";
+
+            bg =
+            "linear-gradient(90deg,#ff3b30,#ff9500)";
+        }
+
+        else if(code >= 61 && code <= 67){
+
+            text =
+            "🌧 Starkregen möglich";
+
+            bg =
+            "linear-gradient(90deg,#2563eb,#7c3aed)";
+        }
+
+        else if(code >= 71 && code <= 77){
+
+            text =
+            "❄️ Schneewarnung aktiv";
+
+            bg =
+            "linear-gradient(90deg,#60a5fa,#94a3b8)";
+        }
+
+        else if(code >= 45 && code <= 48){
+
+            text =
+            "🌫 Nebelwarnung";
+
+            bg =
+            "linear-gradient(90deg,#6b7280,#9ca3af)";
+        }
+
+        banner.innerText =
+        text;
+
+        banner.style.background =
+        bg;
+
+        if(text.includes("Keine")){
+
+            banner.style.boxShadow =
+            "none";
+
+        }else{
+
+            banner.style.boxShadow =
+            "0 0 30px rgba(255,80,0,0.35)";
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+/* WEATHER */
 
 async function loadWeather(lat,lon){
 
@@ -416,7 +556,7 @@ async function loadWeather(lat,lon){
         .innerText =
         `${Math.round(data.current.surface_pressure)} hPa`;
 
-        /* HOURLY */
+        /* 24 HOURS */
 
         const hourly =
         document.getElementById("hourly");
@@ -531,7 +671,7 @@ async function loadWeather(lat,lon){
 
 }
 
-/* GEOLOCATION */
+/* START */
 
 if(navigator.geolocation){
 
@@ -548,6 +688,8 @@ if(navigator.geolocation){
             loadLocation(lat, lon);
 
             loadWeather(lat, lon);
+
+            loadWarnings(lat, lon);
 
         },
 
