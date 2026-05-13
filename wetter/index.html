@@ -311,7 +311,7 @@ body{
     <div class="forecast" id="forecast"></div>
 
     <div class="footer">
-        Wetterdaten vom DWD + Open-Meteo
+        Wetterdaten von Open-Meteo
     </div>
 
 </div>
@@ -379,14 +379,14 @@ async function loadLocation(lat, lon){
 
 }
 
-/* CURRENT WEATHER */
+/* LOAD WEATHER */
 
-async function loadCurrentWeather(lat,lon){
+async function loadWeather(lat,lon){
 
     try{
 
         const api =
-        `https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`;
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,surface_pressure,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,weather_code&timezone=auto`;
 
         const response =
         await fetch(api);
@@ -394,72 +394,84 @@ async function loadCurrentWeather(lat,lon){
         const data =
         await response.json();
 
-        const weather =
-        data.weather;
+        /* CURRENT */
 
         document
         .getElementById("temp")
         .innerText =
-        `${Math.round(weather.temperature)}°`;
-
-        let icon = "☁️";
-
-        const condition =
-        String(weather.condition || "")
-        .toLowerCase();
-
-        if(condition.includes("rain"))
-            icon = "🌧️";
-
-        else if(condition.includes("cloud"))
-            icon = "☁️";
-
-        else if(condition.includes("clear"))
-            icon = "☀️";
-
-        else if(condition.includes("snow"))
-            icon = "❄️";
-
-        else if(condition.includes("storm"))
-            icon = "⛈️";
+        `${Math.round(data.current.temperature_2m)}°`;
 
         document
         .getElementById("icon")
         .innerText =
-        icon;
+        getWeatherIcon(data.current.weather_code);
 
         document
         .getElementById("wind")
         .innerText =
-        `${weather.wind_speed} km/h`;
+        `${Math.round(data.current.wind_speed_10m)} km/h`;
 
         document
         .getElementById("pressure")
         .innerText =
-        `${weather.pressure_msl} hPa`;
+        `${Math.round(data.current.surface_pressure)} hPa`;
 
-    }catch(error){
+        /* HOURLY */
 
-        console.error(error);
+        const hourly =
+        document.getElementById("hourly");
 
-    }
+        hourly.innerHTML = "";
 
-}
+        for(let i = 0; i < 24; i++){
 
-/* 7 DAY FORECAST */
+            const time =
+            new Date(data.hourly.time[i]);
 
-async function loadForecast(lat,lon){
+            const hour =
+            time.toLocaleTimeString(
+                "de-DE",
+                {
+                    hour:"2-digit",
+                    minute:"2-digit"
+                }
+            );
 
-    try{
+            const temp =
+            Math.round(
+                data.hourly.temperature_2m[i]
+            );
 
-        const api =
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,weathercode&timezone=auto`;
+            const code =
+            data.hourly.weather_code[i];
 
-        const response =
-        await fetch(api);
+            const card =
+            document.createElement("div");
 
-        const data =
-        await response.json();
+            card.className =
+            "hour-card";
+
+            card.innerHTML = `
+
+                <div class="hour-time">
+                    ${hour}
+                </div>
+
+                <div class="hour-icon">
+                    ${getWeatherIcon(code)}
+                </div>
+
+                <div class="hour-temp">
+                    ${temp}°
+                </div>
+
+            `;
+
+            hourly.appendChild(card);
+
+        }
+
+        /* 7 DAYS */
 
         const forecast =
         document.getElementById("forecast");
@@ -483,7 +495,7 @@ async function loadForecast(lat,lon){
             );
 
             const code =
-            data.daily.weathercode[index];
+            data.daily.weather_code[index];
 
             const card =
             document.createElement("div");
@@ -519,82 +531,6 @@ async function loadForecast(lat,lon){
 
 }
 
-/* 24 HOUR FORECAST */
-
-async function loadHourlyForecast(lat,lon){
-
-    try{
-
-        const api =
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&timezone=auto`;
-
-        const response =
-        await fetch(api);
-
-        const data =
-        await response.json();
-
-        const hourly =
-        document.getElementById("hourly");
-
-        hourly.innerHTML = "";
-
-        for(let i = 0; i < 24; i++){
-
-            const time =
-            new Date(data.hourly.time[i]);
-
-            const hour =
-            time.toLocaleTimeString(
-                "de-DE",
-                {
-                    hour:"2-digit",
-                    minute:"2-digit"
-                }
-            );
-
-            const temp =
-            Math.round(
-                data.hourly.temperature_2m[i]
-            );
-
-            const code =
-            data.hourly.weathercode[i];
-
-            const card =
-            document.createElement("div");
-
-            card.className =
-            "hour-card";
-
-            card.innerHTML = `
-
-                <div class="hour-time">
-                    ${hour}
-                </div>
-
-                <div class="hour-icon">
-                    ${getWeatherIcon(code)}
-                </div>
-
-                <div class="hour-temp">
-                    ${temp}°
-                </div>
-
-            `;
-
-            hourly.appendChild(card);
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-}
-
 /* GEOLOCATION */
 
 if(navigator.geolocation){
@@ -611,11 +547,7 @@ if(navigator.geolocation){
 
             loadLocation(lat, lon);
 
-            loadCurrentWeather(lat, lon);
-
-            loadForecast(lat, lon);
-
-            loadHourlyForecast(lat, lon);
+            loadWeather(lat, lon);
 
         },
 
