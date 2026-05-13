@@ -36,7 +36,7 @@ body{
     font-size:20px;
 }
 
-/* CURRENT */
+/* CURRENT WEATHER */
 
 .current{
 
@@ -74,7 +74,7 @@ body{
 }
 
 .desc{
-    color:#aaaaaa;
+    color:#aaa;
     font-size:24px;
 }
 
@@ -161,6 +161,8 @@ body{
     font-size:30px;
     font-weight:bold;
 }
+
+/* FOOTER */
 
 .footer{
     margin-top:50px;
@@ -255,9 +257,7 @@ body{
 
 <script>
 
-/*
-Wetter Icons + Texte
-*/
+/* Wetter Icons + Texte */
 
 function getWeatherData(condition){
 
@@ -270,10 +270,15 @@ function getWeatherData(condition){
 
     }
 
-    condition =
+    const c =
     condition.toLowerCase();
 
-    if(condition.includes("rain")){
+    /* RAIN */
+
+    if(
+        c.includes("rain") ||
+        c.includes("drizzle")
+    ){
 
         return {
             icon:"🌧️",
@@ -282,7 +287,12 @@ function getWeatherData(condition){
 
     }
 
-    if(condition.includes("cloud")){
+    /* CLOUDS */
+
+    if(
+        c.includes("cloud") ||
+        c.includes("overcast")
+    ){
 
         return {
             icon:"☁️",
@@ -291,7 +301,13 @@ function getWeatherData(condition){
 
     }
 
-    if(condition.includes("clear")){
+    /* CLEAR / DRY */
+
+    if(
+        c.includes("clear") ||
+        c.includes("dry") ||
+        c.includes("sun")
+    ){
 
         return {
             icon:"☀️",
@@ -300,7 +316,24 @@ function getWeatherData(condition){
 
     }
 
-    if(condition.includes("snow")){
+    /* PARTLY CLOUDY */
+
+    if(
+        c.includes("partly")
+    ){
+
+        return {
+            icon:"🌤️",
+            text:"Teilweise bewölkt"
+        };
+
+    }
+
+    /* SNOW */
+
+    if(
+        c.includes("snow")
+    ){
 
         return {
             icon:"❄️",
@@ -309,7 +342,12 @@ function getWeatherData(condition){
 
     }
 
-    if(condition.includes("fog")){
+    /* FOG */
+
+    if(
+        c.includes("fog") ||
+        c.includes("mist")
+    ){
 
         return {
             icon:"🌫️",
@@ -318,25 +356,35 @@ function getWeatherData(condition){
 
     }
 
-    if(condition.includes("storm")){
+    /* STORM */
+
+    if(
+        c.includes("storm") ||
+        c.includes("thunder")
+    ){
 
         return {
             icon:"⛈️",
-            text:"Sturm"
+            text:"Gewitter"
         };
 
     }
 
+    /* FALLBACK */
+
     return {
+
         icon:"🌤️",
-        text:condition
+
+        text:
+        c.charAt(0).toUpperCase() +
+        c.slice(1)
+
     };
 
 }
 
-/*
-Ort laden
-*/
+/* ORT LADEN */
 
 async function loadLocation(lat, lon){
 
@@ -374,17 +422,13 @@ async function loadLocation(lat, lon){
 
 }
 
-/*
-Wetter laden
-*/
+/* WETTER LADEN */
 
 async function loadWeather(lat,lon){
 
     try{
 
-        /*
-        Current Weather
-        */
+        /* CURRENT WEATHER */
 
         const currentApi =
         `https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`;
@@ -401,54 +445,42 @@ async function loadWeather(lat,lon){
         const weatherData =
         getWeatherData(weather.condition);
 
-        /*
-        Temperatur
-        */
+        /* TEMPERATUR */
 
         document
         .getElementById("temp")
         .innerText =
         `${Math.round(weather.temperature)}°`;
 
-        /*
-        Status
-        */
+        /* STATUS */
 
         document
         .getElementById("desc")
         .innerText =
         weatherData.text;
 
-        /*
-        Icon
-        */
+        /* ICON */
 
         document
         .getElementById("icon")
         .innerText =
         weatherData.icon;
 
-        /*
-        Wind
-        */
+        /* WIND */
 
         document
         .getElementById("wind")
         .innerText =
         `${weather.wind_speed} km/h`;
 
-        /*
-        Druck
-        */
+        /* DRUCK */
 
         document
         .getElementById("pressure")
         .innerText =
         `${weather.pressure_msl} hPa`;
 
-        /*
-        Forecast
-        */
+        /* FORECAST */
 
         const forecastApi =
         `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}`;
@@ -527,9 +559,7 @@ async function loadWeather(lat,lon){
 
 }
 
-/*
-Standort
-*/
+/* GEOLOCATION */
 
 if(navigator.geolocation){
 
