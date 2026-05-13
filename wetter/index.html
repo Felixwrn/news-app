@@ -13,17 +13,31 @@ body{
     background:#000;
     color:white;
     font-family:Arial,sans-serif;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    height:100vh;
 }
 
-.card{
+.wrapper{
+    padding:40px;
+    max-width:1200px;
+    margin:auto;
+}
 
-    width:420px;
+/* HEADER */
+
+.logo{
+    color:#7c3aed;
+    font-size:48px;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.location{
+    color:#777;
+    margin-bottom:40px;
+}
+
+/* CURRENT WEATHER */
+
+.current{
 
     background:#0a0a0a;
 
@@ -33,93 +47,126 @@ body{
 
     padding:40px;
 
-    box-shadow:
-    0 0 40px rgba(124,58,237,0.15);
-}
-
-.logo{
-
-    color:#7c3aed;
-
-    font-size:42px;
-
-    margin-bottom:30px;
-
-    font-weight:bold;
-}
-
-.location{
-
-    color:#777;
-
-    font-size:18px;
-
-    margin-bottom:20px;
-}
-
-.temp{
-
-    font-size:90px;
-
-    font-weight:bold;
-
-    margin-bottom:10px;
-}
-
-.desc{
-
-    color:#aaaaaa;
-
-    font-size:24px;
-
-    margin-bottom:30px;
-}
-
-.info{
-
     display:flex;
 
     justify-content:space-between;
 
-    margin-top:20px;
+    align-items:center;
+
+    box-shadow:
+    0 0 40px rgba(124,58,237,0.15);
+}
+
+.left{
+    display:flex;
+    align-items:center;
+    gap:25px;
+}
+
+.icon{
+    font-size:90px;
+}
+
+.temp{
+    font-size:88px;
+    font-weight:bold;
+}
+
+.desc{
+    color:#aaa;
+    font-size:24px;
+}
+
+/* INFO */
+
+.info{
+    display:flex;
+    gap:20px;
+    margin-top:30px;
 }
 
 .box{
+    flex:1;
 
     background:#111;
 
     border:1px solid #222;
 
-    border-radius:22px;
+    border-radius:24px;
 
-    padding:20px;
-
-    width:45%;
+    padding:25px;
 }
 
 .label{
-
     color:#777;
-
-    font-size:14px;
-
     margin-bottom:10px;
 }
 
 .value{
-
-    font-size:28px;
-
+    font-size:32px;
     font-weight:bold;
 }
 
+/* FORECAST */
+
+.forecast-title{
+    margin-top:50px;
+    margin-bottom:20px;
+
+    font-size:36px;
+}
+
+.forecast{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(140px,1fr));
+
+    gap:20px;
+}
+
+.day{
+
+    background:#111;
+
+    border:1px solid #222;
+
+    border-radius:28px;
+
+    padding:25px;
+
+    text-align:center;
+
+    transition:0.3s;
+}
+
+.day:hover{
+    border-color:#7c3aed;
+    transform:translateY(-4px);
+}
+
+.day-name{
+    color:#888;
+    margin-bottom:15px;
+}
+
+.day-icon{
+    font-size:48px;
+    margin-bottom:15px;
+}
+
+.day-temp{
+    font-size:30px;
+    font-weight:bold;
+}
+
+/* FOOTER */
+
 .footer{
-
-    margin-top:30px;
-
+    margin-top:50px;
     color:#666;
-
-    font-size:14px;
+    text-align:center;
 }
 
 </style>
@@ -127,7 +174,7 @@ body{
 
 <body>
 
-<div class="card">
+<div class="wrapper">
 
     <div class="logo">
         WRN Weather
@@ -137,13 +184,33 @@ body{
         Standort wird geladen...
     </div>
 
-    <div class="temp" id="temp">
-        --
+    <!-- CURRENT -->
+
+    <div class="current">
+
+        <div class="left">
+
+            <div class="icon" id="icon">
+                ☀️
+            </div>
+
+            <div>
+
+                <div class="temp" id="temp">
+                    --
+                </div>
+
+                <div class="desc" id="desc">
+                    Lade Wetter...
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <div class="desc" id="desc">
-        Lade Wetterdaten...
-    </div>
+    <!-- INFO -->
 
     <div class="info">
 
@@ -173,6 +240,14 @@ body{
 
     </div>
 
+    <!-- FORECAST -->
+
+    <div class="forecast-title">
+        7 Tage Trend
+    </div>
+
+    <div class="forecast" id="forecast"></div>
+
     <div class="footer">
         Wetterdaten vom DWD
     </div>
@@ -181,70 +256,138 @@ body{
 
 <script>
 
-async function loadWeather(lat, lon){
+/* Wetter Icons */
+
+function getIcon(condition){
+
+    if(!condition) return "☁️";
+
+    condition = condition.toLowerCase();
+
+    if(condition.includes("rain")) return "🌧️";
+    if(condition.includes("cloud")) return "☁️";
+    if(condition.includes("clear")) return "☀️";
+    if(condition.includes("snow")) return "❄️";
+    if(condition.includes("fog")) return "🌫️";
+    if(condition.includes("storm")) return "⛈️";
+
+    return "🌤️";
+}
+
+async function loadWeather(lat,lon){
 
     try{
 
         /*
-        Wetter API
+        Current Weather
         */
 
-        const api =
+        const currentApi =
         `https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`;
 
-        const response =
-        await fetch(api);
+        const currentResponse =
+        await fetch(currentApi);
 
-        const data =
-        await response.json();
+        const currentData =
+        await currentResponse.json();
 
         const weather =
-        data.weather;
-
-        /*
-        Temperatur
-        */
+        currentData.weather;
 
         document
         .getElementById("temp")
         .innerText =
         `${Math.round(weather.temperature)}°`;
 
-        /*
-        Beschreibung
-        */
-
         document
         .getElementById("desc")
         .innerText =
         weather.condition || "Keine Daten";
-
-        /*
-        Wind
-        */
 
         document
         .getElementById("wind")
         .innerText =
         `${weather.wind_speed} km/h`;
 
-        /*
-        Druck
-        */
-
         document
         .getElementById("pressure")
         .innerText =
         `${weather.pressure_msl} hPa`;
 
-        /*
-        Standort anzeigen
-        */
+        document
+        .getElementById("icon")
+        .innerText =
+        getIcon(weather.condition);
 
         document
         .getElementById("location")
         .innerText =
         `Lat ${lat.toFixed(2)} • Lon ${lon.toFixed(2)}`;
+
+        /*
+        Forecast
+        */
+
+        const forecastApi =
+        `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}`;
+
+        const forecastResponse =
+        await fetch(forecastApi);
+
+        const forecastData =
+        await forecastResponse.json();
+
+        const forecast =
+        document.getElementById("forecast");
+
+        forecast.innerHTML = "";
+
+        const usedDays = [];
+
+        forecastData.weather.forEach(day => {
+
+            const date =
+            new Date(day.timestamp);
+
+            const dayName =
+            date.toLocaleDateString(
+                "de-DE",
+                { weekday:"short" }
+            );
+
+            if(usedDays.includes(dayName))
+                return;
+
+            usedDays.push(dayName);
+
+            if(usedDays.length > 7)
+                return;
+
+            const card =
+            document.createElement("div");
+
+            card.className =
+            "day";
+
+            card.innerHTML = `
+
+                <div class="day-name">
+                    ${dayName}
+                </div>
+
+                <div class="day-icon">
+                    ${getIcon(day.condition)}
+                </div>
+
+                <div class="day-temp">
+                    ${Math.round(day.temperature)}°
+                </div>
+
+            `;
+
+            forecast.appendChild(card);
+
+        });
 
     }catch(error){
 
@@ -259,9 +402,7 @@ async function loadWeather(lat, lon){
 
 }
 
-/*
-Standort holen
-*/
+/* Geolocation */
 
 if(navigator.geolocation){
 
@@ -269,13 +410,10 @@ if(navigator.geolocation){
 
         position => {
 
-            const lat =
-            position.coords.latitude;
-
-            const lon =
-            position.coords.longitude;
-
-            loadWeather(lat, lon);
+            loadWeather(
+                position.coords.latitude,
+                position.coords.longitude
+            );
 
         },
 
@@ -291,13 +429,6 @@ if(navigator.geolocation){
         }
 
     );
-
-}else{
-
-    document
-    .getElementById("desc")
-    .innerText =
-    "Geolocation nicht unterstützt";
 
 }
 
