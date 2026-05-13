@@ -73,11 +73,6 @@ body{
     font-weight:bold;
 }
 
-.desc{
-    color:#aaa;
-    font-size:24px;
-}
-
 /* INFO */
 
 .info{
@@ -246,7 +241,7 @@ body{
     <div class="forecast" id="forecast"></div>
 
     <div class="footer">
-        Wetterdaten vom DWD
+        Wetterdaten vom DWD + Open-Meteo
     </div>
 
 </div>
@@ -255,63 +250,34 @@ body{
 
 /* Wetter Icons */
 
-function getWeatherIcon(condition){
+function getWeatherIcon(code){
 
-    if(!condition)
-        return "☁️";
+    /*
+    Open Meteo Weather Codes
+    */
 
-    const c =
-    condition.toLowerCase();
-
-    if(
-        c.includes("rain") ||
-        c.includes("drizzle")
-    ){
-        return "🌧️";
-    }
-
-    if(
-        c.includes("cloud") ||
-        c.includes("overcast")
-    ){
-        return "☁️";
-    }
-
-    if(
-        c.includes("clear") ||
-        c.includes("dry") ||
-        c.includes("sun")
-    ){
+    if(code === 0)
         return "☀️";
-    }
 
-    if(
-        c.includes("partly")
-    ){
+    if(code <= 3)
         return "🌤️";
-    }
 
-    if(
-        c.includes("snow")
-    ){
+    if(code <= 48)
+        return "☁️";
+
+    if(code <= 67)
+        return "🌧️";
+
+    if(code <= 77)
         return "❄️";
-    }
 
-    if(
-        c.includes("fog") ||
-        c.includes("mist")
-    ){
-        return "🌫️";
-    }
+    if(code <= 82)
+        return "🌧️";
 
-    if(
-        c.includes("storm") ||
-        c.includes("thunder")
-    ){
+    if(code <= 99)
         return "⛈️";
-    }
 
-    return "🌤️";
+    return "☁️";
 }
 
 /* ORT LADEN */
@@ -352,35 +318,58 @@ async function loadLocation(lat, lon){
 
 }
 
-/* WETTER LADEN */
+/* CURRENT WEATHER */
 
-async function loadWeather(lat,lon){
+async function loadCurrentWeather(lat,lon){
 
     try{
 
-        /* CURRENT WEATHER */
-
-        const currentApi =
+        const api =
         `https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`;
 
-        const currentResponse =
-        await fetch(currentApi);
+        const response =
+        await fetch(api);
 
-        const currentData =
-        await currentResponse.json();
+        const data =
+        await response.json();
 
         const weather =
-        currentData.weather;
+        data.weather;
 
         document
         .getElementById("temp")
         .innerText =
         `${Math.round(weather.temperature)}°`;
 
+        /*
+        Simple condition mapping
+        */
+
+        let icon = "☁️";
+
+        const condition =
+        String(weather.condition || "")
+        .toLowerCase();
+
+        if(condition.includes("rain"))
+            icon = "🌧️";
+
+        else if(condition.includes("cloud"))
+            icon = "☁️";
+
+        else if(condition.includes("clear"))
+            icon = "☀️";
+
+        else if(condition.includes("snow"))
+            icon = "❄️";
+
+        else if(condition.includes("storm"))
+            icon = "⛈️";
+
         document
         .getElementById("icon")
         .innerText =
-        getWeatherIcon(weather.condition);
+        icon;
 
         document
         .getElementById("wind")
@@ -392,56 +381,38 @@ async function loadWeather(lat,lon){
         .innerText =
         `${weather.pressure_msl} hPa`;
 
-        /* FORECAST */
+    }catch(error){
 
-        const forecastApi =
-        `https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}`;
+        console.error(error);
 
-        const forecastResponse =
-        await fetch(forecastApi);
+    }
 
-        const forecastData =
-        await forecastResponse.json();
+}
+
+/* FORECAST */
+
+async function loadForecast(lat,lon){
+
+    try{
+
+        const api =
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,weathercode&timezone=auto`;
+
+        const response =
+        await fetch(api);
+
+        const data =
+        await response.json();
 
         const forecast =
         document.getElementById("forecast");
 
         forecast.innerHTML = "";
 
-        const dailyData = {};
-
-        forecastData.weather.forEach(entry => {
+        data.daily.time.forEach((day,index) => {
 
             const date =
-            new Date(entry.timestamp);
-
-            const dayKey =
-            date.toLocaleDateString("de-DE");
-
-            /*
-            Mittagswerte nutzen
-            */
-
-            const hour =
-            date.getHours();
-
-            if(hour < 11 || hour > 15)
-                return;
-
-            if(!dailyData[dayKey]){
-
-                dailyData[dayKey] = entry;
-
-            }
-
-        });
-
-        Object.values(dailyData)
-        .slice(0,7)
-        .forEach(day => {
-
-            const date =
-            new Date(day.timestamp);
+            new Date(day);
 
             const dayName =
             date.toLocaleDateString(
@@ -450,9 +421,12 @@ async function loadWeather(lat,lon){
             );
 
             const temp =
-            day.temperature != null
-            ? Math.round(day.temperature) + "°"
-            : "--";
+            Math.round(
+                data.daily.temperature_2m_max[index]
+            );
+
+            const code =
+            data.daily.weathercode[index];
 
             const card =
             document.createElement("div");
@@ -467,11 +441,11 @@ async function loadWeather(lat,lon){
                 </div>
 
                 <div class="day-icon">
-                    ${getWeatherIcon(day.condition)}
+                    ${getWeatherIcon(code)}
                 </div>
 
                 <div class="day-temp">
-                    ${temp}
+                    ${temp}°
                 </div>
 
             `;
@@ -509,7 +483,9 @@ if(navigator.geolocation){
 
             loadLocation(lat, lon);
 
-            loadWeather(lat, lon);
+            loadCurrentWeather(lat, lon);
+
+            loadForecast(lat, lon);
 
         },
 
