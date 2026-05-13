@@ -257,131 +257,65 @@ body{
 
 <script>
 
-/* Wetter Icons + Texte */
+/* Wetter Icons */
 
-function getWeatherData(condition){
+function getWeatherIcon(condition){
 
-    if(!condition){
-
-        return {
-            icon:"☁️",
-            text:"Unbekannt"
-        };
-
-    }
+    if(!condition)
+        return "☁️";
 
     const c =
     condition.toLowerCase();
-
-    /* RAIN */
 
     if(
         c.includes("rain") ||
         c.includes("drizzle")
     ){
-
-        return {
-            icon:"🌧️",
-            text:"Regen"
-        };
-
+        return "🌧️";
     }
-
-    /* CLOUDS */
 
     if(
         c.includes("cloud") ||
         c.includes("overcast")
     ){
-
-        return {
-            icon:"☁️",
-            text:"Bewölkt"
-        };
-
+        return "☁️";
     }
-
-    /* CLEAR / DRY */
 
     if(
         c.includes("clear") ||
         c.includes("dry") ||
         c.includes("sun")
     ){
-
-        return {
-            icon:"☀️",
-            text:"Klar"
-        };
-
+        return "☀️";
     }
-
-    /* PARTLY CLOUDY */
 
     if(
         c.includes("partly")
     ){
-
-        return {
-            icon:"🌤️",
-            text:"Teilweise bewölkt"
-        };
-
+        return "🌤️";
     }
-
-    /* SNOW */
 
     if(
         c.includes("snow")
     ){
-
-        return {
-            icon:"❄️",
-            text:"Schnee"
-        };
-
+        return "❄️";
     }
-
-    /* FOG */
 
     if(
         c.includes("fog") ||
         c.includes("mist")
     ){
-
-        return {
-            icon:"🌫️",
-            text:"Nebel"
-        };
-
+        return "🌫️";
     }
-
-    /* STORM */
 
     if(
         c.includes("storm") ||
         c.includes("thunder")
     ){
-
-        return {
-            icon:"⛈️",
-            text:"Gewitter"
-        };
-
+        return "⛈️";
     }
 
-    /* FALLBACK */
-
-    return {
-
-        icon:"🌤️",
-
-        text:
-        c.charAt(0).toUpperCase() +
-        c.slice(1)
-
-    };
-
+    return "🌤️";
 }
 
 /* ORT LADEN */
@@ -442,38 +376,20 @@ async function loadWeather(lat,lon){
         const weather =
         currentData.weather;
 
-        const weatherData =
-        getWeatherData(weather.condition);
-
-        /* TEMPERATUR */
-
         document
         .getElementById("temp")
         .innerText =
         `${Math.round(weather.temperature)}°`;
 
-        /* STATUS */
-
-        document
-        .getElementById("desc")
-        .innerText =
-        weatherData.text;
-
-        /* ICON */
-
         document
         .getElementById("icon")
         .innerText =
-        weatherData.icon;
-
-        /* WIND */
+        getWeatherIcon(weather.condition);
 
         document
         .getElementById("wind")
         .innerText =
         `${weather.wind_speed} km/h`;
-
-        /* DRUCK */
 
         document
         .getElementById("pressure")
@@ -496,9 +412,37 @@ async function loadWeather(lat,lon){
 
         forecast.innerHTML = "";
 
-        const usedDays = [];
+        const dailyData = {};
 
-        forecastData.weather.forEach(day => {
+        forecastData.weather.forEach(entry => {
+
+            const date =
+            new Date(entry.timestamp);
+
+            const dayKey =
+            date.toLocaleDateString("de-DE");
+
+            /*
+            Mittagswerte nutzen
+            */
+
+            const hour =
+            date.getHours();
+
+            if(hour < 11 || hour > 15)
+                return;
+
+            if(!dailyData[dayKey]){
+
+                dailyData[dayKey] = entry;
+
+            }
+
+        });
+
+        Object.values(dailyData)
+        .slice(0,7)
+        .forEach(day => {
 
             const date =
             new Date(day.timestamp);
@@ -509,16 +453,10 @@ async function loadWeather(lat,lon){
                 { weekday:"short" }
             );
 
-            if(usedDays.includes(dayName))
-                return;
-
-            usedDays.push(dayName);
-
-            if(usedDays.length > 7)
-                return;
-
-            const dayWeather =
-            getWeatherData(day.condition);
+            const temp =
+            day.temperature != null
+            ? Math.round(day.temperature) + "°"
+            : "--";
 
             const card =
             document.createElement("div");
@@ -533,11 +471,11 @@ async function loadWeather(lat,lon){
                 </div>
 
                 <div class="day-icon">
-                    ${dayWeather.icon}
+                    ${getWeatherIcon(day.condition)}
                 </div>
 
                 <div class="day-temp">
-                    ${Math.round(day.temperature)}°
+                    ${temp}
                 </div>
 
             `;
@@ -551,9 +489,9 @@ async function loadWeather(lat,lon){
         console.error(error);
 
         document
-        .getElementById("desc")
-        .innerText =
-        "Fehler beim Laden";
+        .getElementById("forecast")
+        .innerHTML =
+        "Forecast konnte nicht geladen werden.";
 
     }
 
@@ -584,7 +522,7 @@ if(navigator.geolocation){
             console.error(error);
 
             document
-            .getElementById("desc")
+            .getElementById("location")
             .innerText =
             "Standort verweigert";
 
