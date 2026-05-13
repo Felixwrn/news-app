@@ -33,9 +33,10 @@ body{
 .location{
     color:#777;
     margin-bottom:40px;
+    font-size:20px;
 }
 
-/* CURRENT WEATHER */
+/* CURRENT */
 
 .current{
 
@@ -73,7 +74,7 @@ body{
 }
 
 .desc{
-    color:#aaa;
+    color:#aaaaaa;
     font-size:24px;
 }
 
@@ -160,8 +161,6 @@ body{
     font-size:30px;
     font-weight:bold;
 }
-
-/* FOOTER */
 
 .footer{
     margin-top:50px;
@@ -256,23 +255,128 @@ body{
 
 <script>
 
-/* Wetter Icons */
+/*
+Wetter Icons + Texte
+*/
 
-function getIcon(condition){
+function getWeatherData(condition){
 
-    if(!condition) return "☁️";
+    if(!condition){
 
-    condition = condition.toLowerCase();
+        return {
+            icon:"☁️",
+            text:"Unbekannt"
+        };
 
-    if(condition.includes("rain")) return "🌧️";
-    if(condition.includes("cloud")) return "☁️";
-    if(condition.includes("clear")) return "☀️";
-    if(condition.includes("snow")) return "❄️";
-    if(condition.includes("fog")) return "🌫️";
-    if(condition.includes("storm")) return "⛈️";
+    }
 
-    return "🌤️";
+    condition =
+    condition.toLowerCase();
+
+    if(condition.includes("rain")){
+
+        return {
+            icon:"🌧️",
+            text:"Regen"
+        };
+
+    }
+
+    if(condition.includes("cloud")){
+
+        return {
+            icon:"☁️",
+            text:"Bewölkt"
+        };
+
+    }
+
+    if(condition.includes("clear")){
+
+        return {
+            icon:"☀️",
+            text:"Klar"
+        };
+
+    }
+
+    if(condition.includes("snow")){
+
+        return {
+            icon:"❄️",
+            text:"Schnee"
+        };
+
+    }
+
+    if(condition.includes("fog")){
+
+        return {
+            icon:"🌫️",
+            text:"Nebel"
+        };
+
+    }
+
+    if(condition.includes("storm")){
+
+        return {
+            icon:"⛈️",
+            text:"Sturm"
+        };
+
+    }
+
+    return {
+        icon:"🌤️",
+        text:condition
+    };
+
 }
+
+/*
+Ort laden
+*/
+
+async function loadLocation(lat, lon){
+
+    try{
+
+        const response =
+        await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+        );
+
+        const data =
+        await response.json();
+
+        const city =
+            data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            "Unbekannter Ort";
+
+        document
+        .getElementById("location")
+        .innerText =
+        `📍 ${city}`;
+
+    }catch(error){
+
+        console.error(error);
+
+        document
+        .getElementById("location")
+        .innerText =
+        "📍 Standort unbekannt";
+
+    }
+
+}
+
+/*
+Wetter laden
+*/
 
 async function loadWeather(lat,lon){
 
@@ -294,35 +398,53 @@ async function loadWeather(lat,lon){
         const weather =
         currentData.weather;
 
+        const weatherData =
+        getWeatherData(weather.condition);
+
+        /*
+        Temperatur
+        */
+
         document
         .getElementById("temp")
         .innerText =
         `${Math.round(weather.temperature)}°`;
 
+        /*
+        Status
+        */
+
         document
         .getElementById("desc")
         .innerText =
-        weather.condition || "Keine Daten";
+        weatherData.text;
+
+        /*
+        Icon
+        */
+
+        document
+        .getElementById("icon")
+        .innerText =
+        weatherData.icon;
+
+        /*
+        Wind
+        */
 
         document
         .getElementById("wind")
         .innerText =
         `${weather.wind_speed} km/h`;
 
+        /*
+        Druck
+        */
+
         document
         .getElementById("pressure")
         .innerText =
         `${weather.pressure_msl} hPa`;
-
-        document
-        .getElementById("icon")
-        .innerText =
-        getIcon(weather.condition);
-
-        document
-        .getElementById("location")
-        .innerText =
-        `Lat ${lat.toFixed(2)} • Lon ${lon.toFixed(2)}`;
 
         /*
         Forecast
@@ -363,6 +485,9 @@ async function loadWeather(lat,lon){
             if(usedDays.length > 7)
                 return;
 
+            const dayWeather =
+            getWeatherData(day.condition);
+
             const card =
             document.createElement("div");
 
@@ -376,7 +501,7 @@ async function loadWeather(lat,lon){
                 </div>
 
                 <div class="day-icon">
-                    ${getIcon(day.condition)}
+                    ${dayWeather.icon}
                 </div>
 
                 <div class="day-temp">
@@ -402,7 +527,9 @@ async function loadWeather(lat,lon){
 
 }
 
-/* Geolocation */
+/*
+Standort
+*/
 
 if(navigator.geolocation){
 
@@ -410,10 +537,15 @@ if(navigator.geolocation){
 
         position => {
 
-            loadWeather(
-                position.coords.latitude,
-                position.coords.longitude
-            );
+            const lat =
+            position.coords.latitude;
+
+            const lon =
+            position.coords.longitude;
+
+            loadLocation(lat, lon);
+
+            loadWeather(lat, lon);
 
         },
 
