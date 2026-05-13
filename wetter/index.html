@@ -218,6 +218,44 @@ body{
     font-weight:bold;
 }
 
+/* SUN INFO */
+
+.sun-info{
+
+    display:flex;
+
+    gap:20px;
+
+    margin-top:40px;
+}
+
+.sun-card{
+
+    flex:1;
+
+    background:#111;
+
+    border:1px solid #222;
+
+    border-radius:24px;
+
+    padding:25px;
+}
+
+.sun-label{
+
+    color:#777;
+
+    margin-bottom:10px;
+}
+
+.sun-value{
+
+    font-size:30px;
+
+    font-weight:bold;
+}
+
 /* 7 DAYS */
 
 .forecast{
@@ -354,6 +392,36 @@ body{
 
     </div>
 
+    <!-- SUN INFO -->
+
+    <div class="sun-info">
+
+        <div class="sun-card">
+
+            <div class="sun-label">
+                🌅 Sonnenaufgang
+            </div>
+
+            <div class="sun-value" id="sunrise">
+                --
+            </div>
+
+        </div>
+
+        <div class="sun-card">
+
+            <div class="sun-label">
+                🌇 Sonnenuntergang
+            </div>
+
+            <div class="sun-value" id="sunset">
+                --
+            </div>
+
+        </div>
+
+    </div>
+
     <!-- 7 DAYS -->
 
     <div class="forecast-title">
@@ -438,7 +506,7 @@ async function loadWarnings(lat, lon){
     try{
 
         const api =
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode&timezone=auto`;
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code&timezone=auto`;
 
         const response =
         await fetch(api);
@@ -450,7 +518,7 @@ async function loadWarnings(lat, lon){
         document.getElementById("warningBanner");
 
         const code =
-        data.daily.weathercode[0];
+        data.daily.weather_code[0];
 
         let text =
         "✅ Keine Wetterwarnungen";
@@ -526,7 +594,7 @@ async function loadWeather(lat,lon){
     try{
 
         const api =
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,surface_pressure,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,weather_code&timezone=auto`;
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,surface_pressure,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,weather_code,sunrise,sunset&timezone=auto`;
 
         const response =
         await fetch(api);
@@ -555,6 +623,36 @@ async function loadWeather(lat,lon){
         .getElementById("pressure")
         .innerText =
         `${Math.round(data.current.surface_pressure)} hPa`;
+
+        /* SUN TIMES */
+
+        const sunrise =
+        new Date(data.daily.sunrise[0]);
+
+        const sunset =
+        new Date(data.daily.sunset[0]);
+
+        document
+        .getElementById("sunrise")
+        .innerText =
+        sunrise.toLocaleTimeString(
+            "de-DE",
+            {
+                hour:"2-digit",
+                minute:"2-digit"
+            }
+        );
+
+        document
+        .getElementById("sunset")
+        .innerText =
+        sunset.toLocaleTimeString(
+            "de-DE",
+            {
+                hour:"2-digit",
+                minute:"2-digit"
+            }
+        );
 
         /* 24 HOURS */
 
