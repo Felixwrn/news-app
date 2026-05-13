@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>WRN Weather</title>
+
+<style>
+
+body{
+
+    margin:0;
+
+    background:#000;
+
+    color:white;
+
+    font-family:Arial,sans-serif;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    height:100vh;
+
+}
+
+.card{
+
+    width:420px;
+
+    background:#0a0a0a;
+
+    border:1px solid #1f1f1f;
+
+    border-radius:36px;
+
+    padding:40px;
+
+    box-shadow:
+
+    0 0 40px rgba(124,58,237,0.15);
+
+}
+
+.logo{
+
+    color:#7c3aed;
+
+    font-size:42px;
+
+    margin-bottom:30px;
+
+    font-weight:bold;
+
+}
+
+.temp{
+
+    font-size:90px;
+
+    font-weight:bold;
+
+    margin-bottom:10px;
+
+}
+
+.desc{
+
+    color:#aaaaaa;
+
+    font-size:24px;
+
+    margin-bottom:30px;
+
+}
+
+.info{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-top:20px;
+
+}
+
+.box{
+
+    background:#111;
+
+    border:1px solid #222;
+
+    border-radius:22px;
+
+    padding:20px;
+
+    width:45%;
+
+}
+
+.label{
+
+    color:#777;
+
+    font-size:14px;
+
+    margin-bottom:10px;
+
+}
+
+.value{
+
+    font-size:28px;
+
+    font-weight:bold;
+
+}
+
+.footer{
+
+    margin-top:30px;
+
+    color:#666;
+
+    font-size:14px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+    <div class="logo">
+
+        WRN Weather
+
+    </div>
+
+    <div class="temp" id="temp">
+
+        --
+
+    </div>
+
+    <div class="desc" id="desc">
+
+        Lade Wetterdaten...
+
+    </div>
+
+    <div class="info">
+
+        <div class="box">
+
+            <div class="label">
+
+                Wind
+
+            </div>
+
+            <div class="value" id="wind">
+
+                --
+
+            </div>
+
+        </div>
+
+        <div class="box">
+
+            <div class="label">
+
+                Luftdruck
+
+            </div>
+
+            <div class="value" id="pressure">
+
+                --
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footer">
+
+        Wetterdaten vom DWD
+
+    </div>
+
+</div>
+
+<script>
+
+/*
+
+Dortmund Koordinaten
+
+*/
+
+const lat = 51.5142;
+
+const lon = 7.4653;
+
+/*
+
+Bright Sky API
+
+*/
+
+const api =
+
+`https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`;
+
+async function loadWeather(){
+
+    try{
+
+        const response =
+
+        await fetch(api);
+
+        const data =
+
+        await response.json();
+
+        const weather =
+
+        data.weather;
+
+        document
+
+        .getElementById("temp")
+
+        .innerText =
+
+        `${Math.round(weather.temperature)}°`;
+
+        document
+
+        .getElementById("desc")
+
+        .innerText =
+
+        weather.condition || "Keine Daten";
+
+        document
+
+        .getElementById("wind")
+
+        .innerText =
+
+        `${weather.wind_speed} km/h`;
+
+        document
+
+        .getElementById("pressure")
+
+        .innerText =
+
+        `${weather.pressure_msl} hPa`;
+
+    }catch(error){
+
+        console.error(error);
+
+        document
+
+        .getElementById("desc")
+
+        .innerText =
+
+        "Fehler beim Laden";
+
+    }
+
+}
+
+loadWeather();
+
+</script>
+
+</body>
+
+</html>
