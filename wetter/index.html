@@ -1,11 +1,7 @@
 <!DOCTYPE html>
-
 <html lang="de">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>WRN Weather</title>
@@ -13,23 +9,16 @@
 <style>
 
 body{
-
     margin:0;
-
     background:#000;
-
     color:white;
-
     font-family:Arial,sans-serif;
 
     display:flex;
-
     justify-content:center;
-
     align-items:center;
 
     height:100vh;
-
 }
 
 .card{
@@ -45,9 +34,7 @@ body{
     padding:40px;
 
     box-shadow:
-
     0 0 40px rgba(124,58,237,0.15);
-
 }
 
 .logo{
@@ -59,7 +46,15 @@ body{
     margin-bottom:30px;
 
     font-weight:bold;
+}
 
+.location{
+
+    color:#777;
+
+    font-size:18px;
+
+    margin-bottom:20px;
 }
 
 .temp{
@@ -69,7 +64,6 @@ body{
     font-weight:bold;
 
     margin-bottom:10px;
-
 }
 
 .desc{
@@ -79,7 +73,6 @@ body{
     font-size:24px;
 
     margin-bottom:30px;
-
 }
 
 .info{
@@ -89,7 +82,6 @@ body{
     justify-content:space-between;
 
     margin-top:20px;
-
 }
 
 .box{
@@ -103,7 +95,6 @@ body{
     padding:20px;
 
     width:45%;
-
 }
 
 .label{
@@ -113,7 +104,6 @@ body{
     font-size:14px;
 
     margin-bottom:10px;
-
 }
 
 .value{
@@ -121,7 +111,6 @@ body{
     font-size:28px;
 
     font-weight:bold;
-
 }
 
 .footer{
@@ -131,11 +120,9 @@ body{
     color:#666;
 
     font-size:14px;
-
 }
 
 </style>
-
 </head>
 
 <body>
@@ -143,21 +130,19 @@ body{
 <div class="card">
 
     <div class="logo">
-
         WRN Weather
+    </div>
 
+    <div class="location" id="location">
+        Standort wird geladen...
     </div>
 
     <div class="temp" id="temp">
-
         --
-
     </div>
 
     <div class="desc" id="desc">
-
         Lade Wetterdaten...
-
     </div>
 
     <div class="info">
@@ -165,15 +150,11 @@ body{
         <div class="box">
 
             <div class="label">
-
                 Wind
-
             </div>
 
             <div class="value" id="wind">
-
                 --
-
             </div>
 
         </div>
@@ -181,15 +162,11 @@ body{
         <div class="box">
 
             <div class="label">
-
                 Luftdruck
-
             </div>
 
             <div class="value" id="pressure">
-
                 --
-
             </div>
 
         </div>
@@ -197,103 +174,134 @@ body{
     </div>
 
     <div class="footer">
-
         Wetterdaten vom DWD
-
     </div>
 
 </div>
 
 <script>
 
-/*
-
-Dortmund Koordinaten
-
-*/
-
-const lat = 51.5142;
-
-const lon = 7.4653;
-
-/*
-
-Bright Sky API
-
-*/
-
-const api =
-
-`https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`;
-
-async function loadWeather(){
+async function loadWeather(lat, lon){
 
     try{
 
-        const response =
+        /*
+        Wetter API
+        */
 
+        const api =
+        `https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`;
+
+        const response =
         await fetch(api);
 
         const data =
-
         await response.json();
 
         const weather =
-
         data.weather;
 
+        /*
+        Temperatur
+        */
+
         document
-
         .getElementById("temp")
-
         .innerText =
-
         `${Math.round(weather.temperature)}°`;
 
+        /*
+        Beschreibung
+        */
+
         document
-
         .getElementById("desc")
-
         .innerText =
-
         weather.condition || "Keine Daten";
 
+        /*
+        Wind
+        */
+
         document
-
         .getElementById("wind")
-
         .innerText =
-
         `${weather.wind_speed} km/h`;
 
+        /*
+        Druck
+        */
+
         document
-
         .getElementById("pressure")
-
         .innerText =
-
         `${weather.pressure_msl} hPa`;
+
+        /*
+        Standort anzeigen
+        */
+
+        document
+        .getElementById("location")
+        .innerText =
+        `Lat ${lat.toFixed(2)} • Lon ${lon.toFixed(2)}`;
 
     }catch(error){
 
         console.error(error);
 
         document
-
         .getElementById("desc")
-
         .innerText =
-
         "Fehler beim Laden";
 
     }
 
 }
 
-loadWeather();
+/*
+Standort holen
+*/
+
+if(navigator.geolocation){
+
+    navigator.geolocation.getCurrentPosition(
+
+        position => {
+
+            const lat =
+            position.coords.latitude;
+
+            const lon =
+            position.coords.longitude;
+
+            loadWeather(lat, lon);
+
+        },
+
+        error => {
+
+            console.error(error);
+
+            document
+            .getElementById("desc")
+            .innerText =
+            "Standort verweigert";
+
+        }
+
+    );
+
+}else{
+
+    document
+    .getElementById("desc")
+    .innerText =
+    "Geolocation nicht unterstützt";
+
+}
 
 </script>
 
 </body>
-
 </html>
