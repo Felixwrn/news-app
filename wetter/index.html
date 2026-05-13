@@ -641,7 +641,7 @@ async function loadWeather(lat,lon){
     try{
 
         const api =
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,surface_pressure,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,weather_code,sunrise,sunset,uv_index_max&timezone=auto`;
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,surface_pressure,weather_code,uv_index&hourly=temperature_2m,weather_code&daily=temperature_2m_max,weather_code,sunrise,sunset&timezone=auto`;
 
         const response =
         await fetch(api);
@@ -701,11 +701,11 @@ async function loadWeather(lat,lon){
             }
         );
 
-        /* UV INDEX */
+        /* CURRENT UV INDEX */
 
         const uv =
         Math.round(
-            data.daily.uv_index_max[0]
+            data.current.uv_index
         );
 
         let uvText =
