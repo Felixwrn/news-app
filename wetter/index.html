@@ -21,8 +21,6 @@ body{
     margin:auto;
 }
 
-/* HEADER */
-
 .logo{
     color:#7c3aed;
     font-size:48px;
@@ -82,7 +80,7 @@ body{
 
 }
 
-/* CURRENT WEATHER */
+/* CURRENT */
 
 .current{
 
@@ -124,7 +122,6 @@ body{
 .forecast-title{
     margin-top:50px;
     margin-bottom:20px;
-
     font-size:36px;
 }
 
@@ -260,7 +257,7 @@ body{
     font-weight:bold;
 }
 
-/* UV INDEX */
+/* UV */
 
 .uv-box{
 
@@ -289,7 +286,7 @@ body{
     font-weight:bold;
 }
 
-/* 7 DAYS */
+/* FORECAST */
 
 .forecast{
 
@@ -317,30 +314,39 @@ body{
 }
 
 .day:hover{
+
     border-color:#7c3aed;
+
     transform:translateY(-4px);
 }
 
 .day-name{
+
     color:#888;
+
     margin-bottom:15px;
 }
 
 .day-icon{
+
     font-size:48px;
+
     margin-bottom:15px;
 }
 
 .day-temp{
+
     font-size:30px;
+
     font-weight:bold;
 }
 
-/* FOOTER */
-
 .footer{
+
     margin-top:50px;
+
     color:#666;
+
     text-align:center;
 }
 
@@ -359,13 +365,9 @@ body{
         Standort wird geladen...
     </div>
 
-    <!-- WARNING -->
-
     <div class="warning" id="warningBanner">
         Lade Wetterwarnungen...
     </div>
-
-    <!-- CURRENT -->
 
     <div class="current">
 
@@ -387,15 +389,11 @@ body{
 
     </div>
 
-    <!-- 24 HOURS -->
-
     <div class="forecast-title">
         24 Stunden Trend
     </div>
 
     <div class="hourly" id="hourly"></div>
-
-    <!-- INFO -->
 
     <div class="info">
 
@@ -425,8 +423,6 @@ body{
 
     </div>
 
-    <!-- SUN INFO -->
-
     <div class="sun-info">
 
         <div class="sun-card">
@@ -455,8 +451,6 @@ body{
 
     </div>
 
-    <!-- UV INDEX -->
-
     <div class="uv-box">
 
         <div class="uv-label">
@@ -468,8 +462,6 @@ body{
         </div>
 
     </div>
-
-    <!-- 7 DAYS -->
 
     <div class="forecast-title">
         7 Tage Trend
@@ -485,7 +477,7 @@ body{
 
 <script>
 
-/* WEATHER ICONS */
+/* ICONS */
 
 function getWeatherIcon(code){
 
@@ -541,9 +533,7 @@ async function loadLocation(lat, lon){
     }catch(error){
 
         console.error(error);
-
     }
-
 }
 
 /* WARNINGS */
@@ -615,28 +605,15 @@ async function loadWarnings(lat, lon){
         banner.style.background =
         bg;
 
-        if(text.includes("Keine")){
-
-            banner.style.boxShadow =
-            "none";
-
-        }else{
-
-            banner.style.boxShadow =
-            "0 0 30px rgba(255,80,0,0.35)";
-        }
-
     }catch(error){
 
         console.error(error);
-
     }
-
 }
 
 /* WEATHER */
 
-async function loadWeather(lat,lon){
+async function loadWeather(lat, lon){
 
     try{
 
@@ -648,8 +625,6 @@ async function loadWeather(lat,lon){
 
         const data =
         await response.json();
-
-        /* CURRENT */
 
         document
         .getElementById("temp")
@@ -670,8 +645,6 @@ async function loadWeather(lat,lon){
         .getElementById("pressure")
         .innerText =
         `${Math.round(data.current.surface_pressure)} hPa`;
-
-        /* SUN TIMES */
 
         const sunrise =
         new Date(data.daily.sunrise[0]);
@@ -701,8 +674,6 @@ async function loadWeather(lat,lon){
             }
         );
 
-        /* CURRENT UV INDEX */
-
         const uv =
         Math.round(
             data.current.uv_index
@@ -731,7 +702,7 @@ async function loadWeather(lat,lon){
         .innerText =
         uvText;
 
-        /* 24 HOURS */
+        /* HOURLY */
 
         const hourly =
         document.getElementById("hourly");
@@ -783,10 +754,9 @@ async function loadWeather(lat,lon){
             `;
 
             hourly.appendChild(card);
-
         }
 
-        /* 7 DAYS */
+        /* FORECAST */
 
         const forecast =
         document.getElementById("forecast");
@@ -801,7 +771,9 @@ async function loadWeather(lat,lon){
             const dayName =
             date.toLocaleDateString(
                 "de-DE",
-                { weekday:"short" }
+                {
+                    weekday:"short"
+                }
             );
 
             const temp =
@@ -835,20 +807,57 @@ async function loadWeather(lat,lon){
             `;
 
             forecast.appendChild(card);
-
         });
 
     }catch(error){
 
         console.error(error);
-
     }
-
 }
 
 /* START */
 
-if(navigator.geolocation){
+function startWeather(lat, lon){
+
+    loadLocation(lat, lon);
+
+    loadWeather(lat, lon);
+
+    loadWarnings(lat, lon);
+}
+
+/* ANDROID APP */
+
+if(window.Android){
+
+    try{
+
+        const lat =
+        Android.getLatitude();
+
+        const lon =
+        Android.getLongitude();
+
+        if(lat && lon){
+
+            startWeather(lat, lon);
+
+        }else{
+
+            throw new Error(
+                "Keine Android Koordinaten"
+            );
+        }
+
+    }catch(error){
+
+        console.error(error);
+    }
+}
+
+/* BROWSER */
+
+else if(navigator.geolocation){
 
     navigator.geolocation.getCurrentPosition(
 
@@ -860,11 +869,7 @@ if(navigator.geolocation){
             const lon =
             position.coords.longitude;
 
-            loadLocation(lat, lon);
-
-            loadWeather(lat, lon);
-
-            loadWarnings(lat, lon);
+            startWeather(lat, lon);
 
         },
 
@@ -880,7 +885,6 @@ if(navigator.geolocation){
         }
 
     );
-
 }
 
 </script>
