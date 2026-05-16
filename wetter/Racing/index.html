@@ -318,8 +318,6 @@ const ring = {
     lon:6.9475
 };
 
-/* MAP */
-
 const map = new maplibregl.Map({
 
     container:"map",
@@ -329,10 +327,12 @@ const map = new maplibregl.Map({
 
     center:[ring.lon, ring.lat],
 
-    zoom: 6
-});
+    zoom:9,
 
-/* MARKER */
+    maxZoom:12,
+
+    minZoom:7
+});
 
 new maplibregl.Marker({
     color:"#7c3aed"
@@ -343,12 +343,10 @@ new maplibregl.Marker({
 ])
 .addTo(map);
 
-/* RAINVIEWER RADAR */
-
 let radarFrames = [];
 let currentFrame = 0;
 let radarLayerId = "radar-layer";
-let radarAnimation;
+let radarInterval;
 
 async function loadRadar(){
 
@@ -364,9 +362,18 @@ async function loadRadar(){
 
         radarFrames = data.radar.past;
 
-        document
-        .getElementById("timelineSlider")
-        .max = radarFrames.length - 1;
+        const slider =
+        document.getElementById("timelineSlider");
+
+        slider.max = radarFrames.length - 1;
+
+        slider.addEventListener("input", event => {
+
+            currentFrame =
+            parseInt(event.target.value);
+
+            updateRadar();
+        });
 
         startRadarAnimation();
 
@@ -378,12 +385,9 @@ async function loadRadar(){
 
 function startRadarAnimation(){
 
-    if(radarFrames.length === 0)
-        return;
-
     updateRadar();
 
-    radarAnimation = setInterval(() => {
+    radarInterval = setInterval(() => {
 
         currentFrame++;
 
@@ -400,22 +404,10 @@ function startRadarAnimation(){
     }, 800);
 }
 
-document
-.getElementById("timelineSlider")
-.addEventListener("input", event => {
-
-    currentFrame =
-    parseInt(event.target.value);
-
-    updateRadar();
-});
-
-        updateRadar();
-
-    }, 800);
-}
-
 function updateRadar(){
+
+    if(radarFrames.length === 0)
+        return;
 
     const frame = radarFrames[currentFrame];
 
@@ -440,12 +432,10 @@ function updateRadar(){
     `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/6/1_1.png`;
 
     if(map.getLayer(radarLayerId)){
-
         map.removeLayer(radarLayerId);
     }
 
     if(map.getSource(radarLayerId)){
-
         map.removeSource(radarLayerId);
     }
 
@@ -471,8 +461,6 @@ function updateRadar(){
         }
     });
 }
-
-/* WEATHER */
 
 async function loadWeather(){
 
@@ -509,27 +497,20 @@ async function loadWeather(){
         "✅ Keine Wetterwarnung";
 
         if(code >= 95){
-
-            warning =
-            "⛈ Gewitter am Nürburgring möglich";
+            warning = "⛈ Gewitter am Nürburgring möglich";
         }
 
         else if(code >= 61 && code <= 67){
-
-            warning =
-            "🌧 Starkregen möglich";
+            warning = "🌧 Starkregen möglich";
         }
 
         else if(code >= 71 && code <= 77){
-
-            warning =
-            "❄️ Schnee oder Hagel möglich";
+            warning = "❄️ Schnee oder Hagel möglich";
         }
 
         document
         .getElementById("warning")
-        .innerText =
-        warning;
+        .innerText = warning;
 
     }catch(error){
 
@@ -548,7 +529,7 @@ setInterval(() => {
 
     loadWeather();
 
-}, 600000);
+}, 60000);
 
 </script>
 
