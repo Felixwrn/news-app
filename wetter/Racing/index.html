@@ -421,7 +421,7 @@ async function loadRadar(){
 
         ];
 
-        /* 3 STUNDEN FAKE FUTURE */
+        /* 3 STUNDEN ZUKUNFT */
 
         const lastFrame =
         radarFrames[
@@ -436,7 +436,10 @@ async function loadRadar(){
 
                 time:lastFrame.time + (i * 300),
 
-                fake:true
+                fake:true,
+
+                offsetX:i * 0.25,
+                offsetY:i * -0.12
             });
         }
 
@@ -585,7 +588,12 @@ function updateRadar(){
         source:radarLayerId,
 
         paint:{
-            "raster-opacity":opacity
+            "raster-opacity":opacity,
+            "raster-translate":[
+                frame.offsetX || 0,
+                frame.offsetY || 0
+            ],
+            "raster-translate-anchor":"viewport"
         }
     });
 }
