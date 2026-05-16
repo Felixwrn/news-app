@@ -356,27 +356,33 @@ const map = new maplibregl.Map({
     container:"map",
 
     style:{
-    version:8,
-    sources:{
-        osm:{
-            type:"raster",
-            tiles:[
-                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            ],
-            tileSize:256,
-            attribution:"© OpenStreetMap"
-        }
+        version:8,
+
+        sources:{
+            osm:{
+                type:"raster",
+
+                tiles:[
+                    "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                ],
+
+                tileSize:256,
+
+                attribution:"© OpenStreetMap"
+            }
+        },
+
+        layers:[
+            {
+                id:"osm",
+                type:"raster",
+                source:"osm"
+            }
+        ]
     },
-    layers:[
-        {
-            id:"osm",
-            type:"raster",
-            source:"osm"
-        }
-    ]
-}
+
     center:[ring.lon, ring.lat],
 
     zoom:4,
@@ -578,7 +584,7 @@ function updateRadar(){
     `🌧 Radarzeit: ${formattedTime}`;
 
     const tileUrl =
-`https://tilecache.rainviewer.com${frame.path}/512/{z}/{x}/{y}/2/1_1.png`;
+    `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
 
     if(map.getLayer(radarLayerId)){
 
@@ -635,8 +641,6 @@ async function loadWeather(){
         .getElementById("wind")
         .innerText =
         `${Math.round(data.current.wind_speed_10m)} km/h`;
-
-        /* REGENANKUNFT */
 
         let arrivalText =
         "Kein Regen erwartet";
