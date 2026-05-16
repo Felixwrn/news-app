@@ -155,10 +155,8 @@ body{
 
     position:absolute;
 
-    left:50%;
+    right:20px;
     bottom:20px;
-
-    transform:translateX(-50%);
 
     z-index:10;
 
@@ -198,33 +196,6 @@ body{
     accent-color:#7c3aed;
 }
 
-.radar-badge{
-
-    position:absolute;
-
-    bottom:20px;
-    right:20px;
-
-    z-index:10;
-
-    background:rgba(10,10,10,0.92);
-
-    border:1px solid #1f1f1f;
-
-    border-radius:24px;
-
-    padding:16px 22px;
-
-    backdrop-filter:blur(20px);
-
-    color:#7c3aed;
-
-    font-weight:bold;
-
-    box-shadow:
-    0 0 30px rgba(124,58,237,0.2);
-}
-
 .maplibregl-popup-content{
 
     background:#111 !important;
@@ -257,6 +228,9 @@ body{
     .timeline-container{
 
         width:calc(100% - 40px);
+
+        right:20px;
+        bottom:20px;
     }
 }
 
@@ -321,10 +295,6 @@ body{
         WRN Weather Racing • Nürburgring Edition
     </div>
 
-</div>
-
-<div class="radar-badge">
-    LIVE RADAR
 </div>
 
 <div class="timeline-container">
@@ -392,8 +362,6 @@ const map = new maplibregl.Map({
     minZoom:3
 });
 
-/* MARKER */
-
 const popup = new maplibregl.Popup({
     offset:25
 })
@@ -418,8 +386,6 @@ const marker = new maplibregl.Marker({
 ])
 .setPopup(popup)
 .addTo(map);
-
-/* HOVER FÜR PC */
 
 marker.getElement().addEventListener("mouseenter", () => {
 
@@ -454,8 +420,6 @@ async function loadRadar(){
             ...(data.radar.nowcast || [])
 
         ];
-
-        /* FAKE FORECAST */
 
         if((data.radar.nowcast || []).length === 0){
 
