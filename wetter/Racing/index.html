@@ -17,8 +17,8 @@ rel="stylesheet"
 
 body{
     margin:0;
-    background:#000;
     overflow:hidden;
+    background:#000;
     font-family:Arial,sans-serif;
 }
 
@@ -34,21 +34,21 @@ body{
     top:20px;
     left:20px;
 
-    z-index:10;
-
     width:340px;
+
+    z-index:10;
 
     background:rgba(10,10,10,0.92);
 
-    border-radius:30px;
+    border-radius:28px;
 
     padding:24px;
 
-    color:white;
+    border:1px solid #222;
 
     backdrop-filter:blur(20px);
 
-    border:1px solid #222;
+    color:white;
 }
 
 .logo{
@@ -73,13 +73,13 @@ body{
 
     background:#111;
 
+    border:1px solid #222;
+
     border-radius:22px;
 
     padding:20px;
 
     margin-bottom:16px;
-
-    border:1px solid #222;
 }
 
 .label{
@@ -100,9 +100,11 @@ body{
 
     margin-top:10px;
 
+    border-radius:20px;
+
     padding:18px;
 
-    border-radius:20px;
+    font-weight:bold;
 
     background:
     linear-gradient(
@@ -110,8 +112,6 @@ body{
         #ff3b30,
         #ff9500
     );
-
-    font-weight:bold;
 }
 
 .timeline{
@@ -121,19 +121,19 @@ body{
     right:20px;
     bottom:20px;
 
-    z-index:10;
-
     width:420px;
+
+    z-index:10;
 
     background:rgba(10,10,10,0.92);
 
-    padding:20px;
-
     border-radius:24px;
 
-    backdrop-filter:blur(20px);
+    padding:20px;
 
     border:1px solid #222;
+
+    backdrop-filter:blur(20px);
 }
 
 .timeline-time{
@@ -221,8 +221,8 @@ body{
 
     <input
         type="range"
-        class="slider"
         id="slider"
+        class="slider"
         min="0"
         max="0"
         value="0"
@@ -319,7 +319,7 @@ async function loadRadar(){
         frames.length - 1
     ];
 
-    /* 3 STUNDEN FUTURE */
+    /* 3 STUNDEN ZUKUNFT */
 
     for(let i = 1; i <= 36; i++){
 
@@ -331,10 +331,8 @@ async function loadRadar(){
 
             fake:true,
 
-            opacity:
-            0.35 + (
-                Math.sin(i * 0.4) * 0.08
-            )
+            shiftX:i * 3,
+            shiftY:i * -1.5
         });
     }
 
@@ -390,14 +388,24 @@ function updateRadar(){
     if(!frame)
         return;
 
-    if(map.getLayer("radar")){
+    if(map.getLayer("radar-base")){
 
-        map.removeLayer("radar");
+        map.removeLayer("radar-base");
     }
 
-    if(map.getSource("radar")){
+    if(map.getLayer("radar-future")){
 
-        map.removeSource("radar");
+        map.removeLayer("radar-future");
+    }
+
+    if(map.getSource("radar-base")){
+
+        map.removeSource("radar-base");
+    }
+
+    if(map.getSource("radar-future")){
+
+        map.removeSource("radar-future");
     }
 
     const time =
@@ -426,7 +434,9 @@ function updateRadar(){
     const tileUrl =
     `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
 
-    map.addSource("radar", {
+    /* BASIS RADAR */
+
+    map.addSource("radar-base", {
 
         type:"raster",
 
@@ -439,45 +449,60 @@ function updateRadar(){
 
     map.addLayer({
 
-        id:"radar",
+        id:"radar-base",
 
         type:"raster",
 
-        source:"radar",
+        source:"radar-base",
 
         paint:{
-
             "raster-opacity":
             frame.fake
             ?
-            frame.opacity
+            0.25
             :
             0.75
         }
     });
 
-    /* KLEINE FAKE BEWEGUNG */
+    /* BEWEGTE ZUKUNFTS WOLKEN */
 
     if(frame.fake){
 
-        const move =
-        (current % 36) * 0.03;
+        map.addSource("radar-future", {
 
-        map.setCenter([
+            type:"raster",
 
-            ring.lon + move,
+            tiles:[
+                tileUrl
+            ],
 
-            ring.lat - (move * 0.3)
-        ]);
+            tileSize:256
+        });
 
-    }else{
+        map.addLayer({
 
-        map.setCenter([
+            id:"radar-future",
 
-            ring.lon,
+            type:"raster",
 
-            ring.lat
-        ]);
+            source:"radar-future",
+
+            paint:{
+
+                "raster-opacity":0.45,
+
+                "raster-translate":[
+
+                    frame.shiftX,
+
+                    frame.shiftY
+                ],
+
+                "raster-translate-anchor":
+                "viewport"
+            }
+        });
     }
 }
 
@@ -505,8 +530,6 @@ async function loadWeather(){
     `${Math.round(
         data.current.wind_speed_10m
     )} km/h`;
-
-    /* REGEN ERWARTET */
 
     let rainText =
     "Kein Regen";
