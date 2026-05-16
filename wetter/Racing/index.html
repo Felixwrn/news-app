@@ -151,6 +151,53 @@ body{
     text-align:center;
 }
 
+.timeline-container{
+
+    position:absolute;
+
+    left:50%;
+    bottom:20px;
+
+    transform:translateX(-50%);
+
+    z-index:10;
+
+    width:420px;
+
+    background:rgba(10,10,10,0.92);
+
+    border:1px solid #1f1f1f;
+
+    border-radius:24px;
+
+    padding:18px 24px;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 0 30px rgba(124,58,237,0.2);
+}
+
+.timeline-time{
+
+    text-align:center;
+
+    margin-bottom:14px;
+
+    color:white;
+
+    font-weight:bold;
+
+    font-size:18px;
+}
+
+.timeline-slider{
+
+    width:100%;
+
+    accent-color:#7c3aed;
+}
+
 .radar-badge{
 
     position:absolute;
@@ -245,6 +292,25 @@ body{
     LIVE RADAR
 </div>
 
+<!-- TIMELINE -->
+
+<div class="timeline-container">
+
+    <div class="timeline-time" id="timelineTime">
+        Lade Radarzeit...
+    </div>
+
+    <input
+        type="range"
+        min="0"
+        max="0"
+        value="0"
+        id="timelineSlider"
+        class="timeline-slider"
+    />
+
+</div>
+
 <script>
 
 const ring = {
@@ -263,7 +329,7 @@ const map = new maplibregl.Map({
 
     center:[ring.lon, ring.lat],
 
-    zoom:9
+    zoom: 6
 });
 
 /* MARKER */
@@ -282,6 +348,7 @@ new maplibregl.Marker({
 let radarFrames = [];
 let currentFrame = 0;
 let radarLayerId = "radar-layer";
+let radarAnimation;
 
 async function loadRadar(){
 
@@ -296,6 +363,10 @@ async function loadRadar(){
         await response.json();
 
         radarFrames = data.radar.past;
+
+        document
+        .getElementById("timelineSlider")
+        .max = radarFrames.length - 1;
 
         startRadarAnimation();
 
@@ -312,13 +383,32 @@ function startRadarAnimation(){
 
     updateRadar();
 
-    setInterval(() => {
+    radarAnimation = setInterval(() => {
 
         currentFrame++;
 
         if(currentFrame >= radarFrames.length){
             currentFrame = 0;
         }
+
+        document
+        .getElementById("timelineSlider")
+        .value = currentFrame;
+
+        updateRadar();
+
+    }, 800);
+}
+
+document
+.getElementById("timelineSlider")
+.addEventListener("input", event => {
+
+    currentFrame =
+    parseInt(event.target.value);
+
+    updateRadar();
+});
 
         updateRadar();
 
@@ -328,6 +418,23 @@ function startRadarAnimation(){
 function updateRadar(){
 
     const frame = radarFrames[currentFrame];
+
+    const radarDate =
+    new Date(frame.time * 1000);
+
+    const formattedTime =
+    radarDate.toLocaleTimeString(
+        "de-DE",
+        {
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
+
+    document
+    .getElementById("timelineTime")
+    .innerText =
+    `🌧 Radarzeit: ${formattedTime}`;
 
     const tileUrl =
     `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/6/1_1.png`;
@@ -441,7 +548,7 @@ setInterval(() => {
 
     loadWeather();
 
-}, 60000);
+}, 600000);
 
 </script>
 
