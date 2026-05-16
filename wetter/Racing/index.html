@@ -212,19 +212,6 @@ body{
     border-top-color:#111 !important;
 }
 
-@media(max-width:900px){
-
-    .overlay{
-
-        width:calc(100% - 40px);
-    }
-
-    .timeline-container{
-
-        width:calc(100% - 40px);
-    }
-}
-
 </style>
 </head>
 
@@ -282,10 +269,6 @@ body{
         Lade Wetterwarnung...
     </div>
 
-    <div class="footer">
-        WRN Weather Racing • Nürburgring Edition
-    </div>
-
 </div>
 
 <div class="timeline-container">
@@ -329,9 +312,7 @@ const map = new maplibregl.Map({
                     "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 ],
 
-                tileSize:256,
-
-                attribution:"© OpenStreetMap"
+                tileSize:256
             }
         },
 
@@ -353,40 +334,14 @@ const map = new maplibregl.Map({
     minZoom:3
 });
 
-const popup = new maplibregl.Popup({
-    offset:25
-})
-.setHTML(`
-
-<div style="font-size:16px;font-weight:bold;">
-🏁 Nürburgring Boxengasse
-</div>
-
-<div style="margin-top:8px;color:#aaa;">
-WRN Racing Radar Standort
-</div>
-
-`);
-
-const marker = new maplibregl.Marker({
+new maplibregl.Marker({
     color:"#7c3aed"
 })
 .setLngLat([
     ring.lon,
     ring.lat
 ])
-.setPopup(popup)
 .addTo(map);
-
-marker.getElement().addEventListener("mouseenter", () => {
-
-    popup.addTo(map);
-});
-
-marker.getElement().addEventListener("mouseleave", () => {
-
-    popup.remove();
-});
 
 let radarFrames = [];
 let currentFrame = 0;
@@ -411,12 +366,12 @@ async function loadRadar(){
 
         ];
 
+        /* 3H FAKE FUTURE */
+
         const lastFrame =
         radarFrames[
             radarFrames.length - 1
         ];
-
-        /* 3 STUNDEN FAKE FUTURE */
 
         for(let i = 1; i <= 36; i++){
 
@@ -426,55 +381,60 @@ async function loadRadar(){
 
                 time:lastFrame.time + (i * 300),
 
-                fake:true
+                fake:true,
+
+                shiftX:i * 2,
+                shiftY:i * -1
             });
         }
 
         const slider =
-        document.getElementById("timelineSlider");
+        document.getElementById(
+            "timelineSlider"
+        );
 
         slider.max =
         radarFrames.length - 1;
 
-        const now =
-        Date.now() / 1000;
-
-        let closestIndex = 0;
-
-        let smallestDiff =
-        Infinity;
-
-        radarFrames.forEach((frame, index) => {
-
-            const diff =
-            Math.abs(frame.time - now);
-
-            if(diff < smallestDiff){
-
-                smallestDiff = diff;
-
-                closestIndex = index;
-            }
-        });
-
         currentFrame =
-        Math.max(
-            closestIndex - 2,
-            0
-        );
+        radarFrames.length - 40;
 
         slider.value =
         currentFrame;
 
-        slider.addEventListener("input", event => {
+        slider.addEventListener(
+            "input",
+            event => {
 
-            currentFrame =
-            parseInt(event.target.value);
+                currentFrame =
+                parseInt(
+                    event.target.value
+                );
+
+                updateRadar();
+            }
+        );
+
+        updateRadar();
+
+        setInterval(() => {
+
+            currentFrame++;
+
+            if(
+                currentFrame >=
+                radarFrames.length
+            ){
+
+                currentFrame = 0;
+            }
+
+            slider.value =
+            currentFrame;
 
             updateRadar();
-        });
 
-        startRadarAnimation();
+        }, 800);
 
     }catch(error){
 
@@ -482,35 +442,29 @@ async function loadRadar(){
     }
 }
 
-function startRadarAnimation(){
-
-    updateRadar();
-
-    setInterval(() => {
-
-        currentFrame++;
-
-        if(currentFrame >= radarFrames.length){
-
-            currentFrame = 0;
-        }
-
-        document
-        .getElementById("timelineSlider")
-        .value = currentFrame;
-
-        updateRadar();
-
-    }, 800);
-}
-
 function updateRadar(){
-
-    if(radarFrames.length === 0)
-        return;
 
     const frame =
     radarFrames[currentFrame];
+
+    if(!frame)
+        return;
+
+    const oldLayer =
+    map.getLayer("radar");
+
+    if(oldLayer){
+
+        map.removeLayer("radar");
+    }
+
+    const oldSource =
+    map.getSource("radar");
+
+    if(oldSource){
+
+        map.removeSource("radar");
+    }
 
     const radarDate =
     new Date(frame.time * 1000);
@@ -524,108 +478,58 @@ function updateRadar(){
         }
     );
 
-    let futureText = "";
-
-    if(frame.fake){
-
-        futureText =
-        " • Prognose";
-    }
-
     document
     .getElementById("timelineTime")
     .innerText =
-    `🌧 Radarzeit: ${formattedTime}${futureText}`;
+    frame.fake
+    ?
+    `🌧 ${formattedTime} • Prognose`
+    :
+    `🌧 ${formattedTime}`;
 
-    const sourceId =
-    "radar-" + currentFrame;
-
-    const tileUrl =
-    `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/7/1_1.png`;
-
-    /* ALTE RADAR LAYER ENTFERNEN */
-
-    const layers =
-    map.getStyle().layers;
-
-    layers.forEach(layer => {
-
-        if(layer.id.startsWith("radar-layer")){
-
-            if(map.getLayer(layer.id)){
-
-                map.removeLayer(layer.id);
-            }
-        }
-    });
-
-    Object.keys(map.style.sourceCaches).forEach(source => {
-
-        if(source.startsWith("radar-")){
-
-            if(map.getSource(source)){
-
-                map.removeSource(source);
-            }
-        }
-    });
-
-    map.addSource(sourceId, {
+    map.addSource("radar", {
 
         type:"raster",
 
-        tiles:[tileUrl],
+        tiles:[
+
+            `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`
+        ],
 
         tileSize:256
     });
 
     map.addLayer({
 
-        id:"radar-layer-" + currentFrame,
+        id:"radar",
 
         type:"raster",
 
-        source:sourceId,
+        source:"radar",
 
         paint:{
+
             "raster-opacity":
-            frame.fake ? 0.35 : 0.75
+            frame.fake
+            ?
+            0.4
+            :
+            0.75,
+
+            "raster-translate":
+            frame.fake
+            ?
+            [
+                frame.shiftX,
+                frame.shiftY
+            ]
+            :
+            [0,0],
+
+            "raster-translate-anchor":
+            "viewport"
         }
     });
-
-    /* FAKE BEWEGUNG */
-
-    if(frame.fake){
-
-        const move =
-        currentFrame * 0.2;
-
-        map.easeTo({
-
-            center:[
-                ring.lon + (move * 0.02),
-                ring.lat - (move * 0.01)
-            ],
-
-            duration:700,
-
-            essential:true
-        });
-
-    }else{
-
-        map.easeTo({
-
-            center:[
-                ring.lon,
-                ring.lat
-            ],
-
-            duration:700,
-
-            essential:true
-        });
-    }
 }
 
 async function loadWeather(){
@@ -644,17 +548,25 @@ async function loadWeather(){
         document
         .getElementById("temp")
         .innerText =
-        `${Math.round(data.current.temperature_2m)}°`;
+        `${Math.round(
+            data.current.temperature_2m
+        )}°`;
 
         document
         .getElementById("wind")
         .innerText =
-        `${Math.round(data.current.wind_speed_10m)} km/h`;
+        `${Math.round(
+            data.current.wind_speed_10m
+        )} km/h`;
 
         let arrivalText =
         "Kein Regen erwartet";
 
-        for(let i = 0; i < data.hourly.time.length; i++){
+        for(
+            let i = 0;
+            i < data.hourly.time.length;
+            i++
+        ){
 
             const rain =
             data.hourly.rain[i];
@@ -662,7 +574,9 @@ async function loadWeather(){
             if(rain > 0.2){
 
                 const rainTime =
-                new Date(data.hourly.time[i]);
+                new Date(
+                    data.hourly.time[i]
+                );
 
                 const formatted =
                 rainTime.toLocaleTimeString(
@@ -694,19 +608,16 @@ async function loadWeather(){
         if(code >= 95){
 
             warning =
-            "⛈ Gewitter am Nürburgring möglich";
+            "⛈ Gewitter möglich";
         }
 
-        else if(code >= 61 && code <= 67){
+        else if(
+            code >= 61 &&
+            code <= 67
+        ){
 
             warning =
             "🌧 Starkregen möglich";
-        }
-
-        else if(code >= 71 && code <= 77){
-
-            warning =
-            "❄️ Schnee oder Hagel möglich";
         }
 
         document
