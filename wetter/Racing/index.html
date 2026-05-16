@@ -360,7 +360,13 @@ async function loadRadar(){
         const data =
         await response.json();
 
-        radarFrames = data.radar.past;
+        radarFrames = [
+
+    ...data.radar.past,
+
+    ...data.radar.nowcast
+
+];
 
         const slider =
         document.getElementById("timelineSlider");
