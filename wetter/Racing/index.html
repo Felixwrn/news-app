@@ -312,8 +312,8 @@ body{
 <script>
 
 const ring = {
-    lat:50.3356,
-    lon:6.9475
+    lat:50.3351,
+    lon:6.9474
 };
 
 const map = new maplibregl.Map({
@@ -362,20 +362,44 @@ async function loadRadar(){
 
             ...data.radar.past,
 
-            ...data.radar.nowcast
+            ...(data.radar.nowcast || [])
 
         ];
 
         const slider =
         document.getElementById("timelineSlider");
 
-        slider.max = radarFrames.length - 1;
+        slider.max =
+        radarFrames.length - 1;
 
-        /* START 10 MIN VOR JETZT */
+        /* JETZT FINDEN */
+
+        const now =
+        Date.now() / 1000;
+
+        let closestIndex = 0;
+
+        let smallestDiff =
+        Infinity;
+
+        radarFrames.forEach((frame, index) => {
+
+            const diff =
+            Math.abs(frame.time - now);
+
+            if(diff < smallestDiff){
+
+                smallestDiff = diff;
+
+                closestIndex = index;
+            }
+        });
+
+        /* 10 MIN VORHER */
 
         currentFrame =
         Math.max(
-            radarFrames.length - 3,
+            closestIndex - 2,
             0
         );
 
@@ -446,7 +470,7 @@ function updateRadar(){
     `🌧 Radarzeit: ${formattedTime}`;
 
     const tileUrl =
-    `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/5/1_1.png`;
+    `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
 
     if(map.getLayer(radarLayerId)){
 
