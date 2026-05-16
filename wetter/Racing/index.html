@@ -277,6 +277,94 @@ new maplibregl.Marker({
 ])
 .addTo(map);
 
+/* RAINVIEWER RADAR */
+
+let radarFrames = [];
+let currentFrame = 0;
+let radarLayerId = "radar-layer";
+
+async function loadRadar(){
+
+    try{
+
+        const response =
+        await fetch(
+            "https://api.rainviewer.com/public/weather-maps.json"
+        );
+
+        const data =
+        await response.json();
+
+        radarFrames = data.radar.past;
+
+        startRadarAnimation();
+
+    }catch(error){
+
+        console.error(error);
+    }
+}
+
+function startRadarAnimation(){
+
+    if(radarFrames.length === 0)
+        return;
+
+    updateRadar();
+
+    setInterval(() => {
+
+        currentFrame++;
+
+        if(currentFrame >= radarFrames.length){
+            currentFrame = 0;
+        }
+
+        updateRadar();
+
+    }, 800);
+}
+
+function updateRadar(){
+
+    const frame = radarFrames[currentFrame];
+
+    const tileUrl =
+    `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/6/1_1.png`;
+
+    if(map.getLayer(radarLayerId)){
+
+        map.removeLayer(radarLayerId);
+    }
+
+    if(map.getSource(radarLayerId)){
+
+        map.removeSource(radarLayerId);
+    }
+
+    map.addSource(radarLayerId, {
+
+        type:"raster",
+
+        tiles:[tileUrl],
+
+        tileSize:256
+    });
+
+    map.addLayer({
+
+        id:radarLayerId,
+
+        type:"raster",
+
+        source:radarLayerId,
+
+        paint:{
+            "raster-opacity":0.75
+        }
+    });
+}
+
 /* WEATHER */
 
 async function loadWeather(){
@@ -342,7 +430,12 @@ async function loadWeather(){
     }
 }
 
-loadWeather();
+map.on("load", () => {
+
+    loadRadar();
+
+    loadWeather();
+});
 
 setInterval(() => {
 
