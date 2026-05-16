@@ -269,18 +269,6 @@ body{
     <div class="card">
 
         <div class="label">
-            🌧 Regenwahrscheinlichkeit
-        </div>
-
-        <div class="value" id="rain">
-            --%
-        </div>
-
-    </div>
-
-    <div class="card">
-
-        <div class="label">
             ⏱ Regenankunft
         </div>
 
@@ -546,7 +534,7 @@ async function loadWeather(){
     try{
 
         const api =
-        `https://api.open-meteo.com/v1/forecast?latitude=${ring.lat}&longitude=${ring.lon}&current=temperature_2m,wind_speed_10m&hourly=precipitation_probability,precipitation,rain&daily=weather_code&forecast_hours=24&timezone=auto`;
+        `https://api.open-meteo.com/v1/forecast?latitude=${ring.lat}&longitude=${ring.lon}&current=temperature_2m,wind_speed_10m&hourly=rain&daily=weather_code&forecast_hours=24&timezone=auto`;
 
         const response =
         await fetch(api);
@@ -563,11 +551,6 @@ async function loadWeather(){
         .getElementById("wind")
         .innerText =
         `${Math.round(data.current.wind_speed_10m)} km/h`;
-
-        document
-        .getElementById("rain")
-        .innerText =
-        `${data.hourly.precipitation_probability[0]}%`;
 
         /* REGENANKUNFT */
 
