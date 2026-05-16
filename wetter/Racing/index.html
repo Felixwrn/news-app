@@ -309,6 +309,18 @@ body{
 
     </div>
 
+    <div class="card">
+
+        <div class="label">
+            ⏱ Regenankunft
+        </div>
+
+        <div class="value" id="arrival">
+            Berechne...
+        </div>
+
+    </div>
+
     <div class="warning" id="warning">
         Lade Wetterwarnung...
     </div>
@@ -362,11 +374,11 @@ const map = new maplibregl.Map({
 
     center:[ring.lon, ring.lat],
 
-    zoom:5,
+    zoom:8,
 
-    maxZoom:6,
+    maxZoom:11,
 
-    minZoom:3
+    minZoom:6
 });
 
 new maplibregl.Marker({
@@ -420,6 +432,28 @@ ${new Date().toLocaleTimeString()}
             ...(data.radar.nowcast || [])
 
         ];
+
+        /* FAKE FORECAST */
+
+        if((data.radar.nowcast || []).length === 0){
+
+            const lastFrame =
+            data.radar.past[
+                data.radar.past.length - 1
+            ];
+
+            for(let i = 1; i <= 12; i++){
+
+                radarFrames.push({
+
+                    path:lastFrame.path,
+
+                    time:lastFrame.time + (i * 300),
+
+                    fake:true
+                });
+            }
+        }
 
         const slider =
         document.getElementById("timelineSlider");
@@ -508,6 +542,13 @@ function updateRadar(){
     const frame =
     radarFrames[currentFrame];
 
+    let opacity = 0.75;
+
+    if(frame.fake){
+
+        opacity = 0.45;
+    }
+
     const radarDate =
     new Date(frame.time * 1000);
 
@@ -556,7 +597,7 @@ function updateRadar(){
         source:radarLayerId,
 
         paint:{
-            "raster-opacity":0.75
+            "raster-opacity":opacity
         }
     });
 }
@@ -566,7 +607,7 @@ async function loadWeather(){
     try{
 
         const api =
-        `https://api.open-meteo.com/v1/forecast?latitude=${ring.lat}&longitude=${ring.lon}&current=temperature_2m,wind_speed_10m&hourly=precipitation_probability&daily=weather_code&timezone=auto`;
+        `https://api.open-meteo.com/v1/forecast?latitude=${ring.lat}&longitude=${ring.lon}&current=temperature_2m,wind_speed_10m&hourly=precipitation_probability,precipitation,rain&daily=weather_code&forecast_hours=24&timezone=auto`;
 
         const response =
         await fetch(api);
@@ -588,6 +629,42 @@ async function loadWeather(){
         .getElementById("rain")
         .innerText =
         `${data.hourly.precipitation_probability[0]}%`;
+
+        /* REGENANKUNFT */
+
+        let arrivalText =
+        "Kein Regen erwartet";
+
+        for(let i = 0; i < data.hourly.time.length; i++){
+
+            const rain =
+            data.hourly.rain[i];
+
+            if(rain > 0.2){
+
+                const rainTime =
+                new Date(data.hourly.time[i]);
+
+                const formatted =
+                rainTime.toLocaleTimeString(
+                    "de-DE",
+                    {
+                        hour:"2-digit",
+                        minute:"2-digit"
+                    }
+                );
+
+                arrivalText =
+                `🌧 Ab ${formatted}`;
+
+                break;
+            }
+        }
+
+        document
+        .getElementById("arrival")
+        .innerText =
+        arrivalText;
 
         const code =
         data.daily.weather_code[0];
