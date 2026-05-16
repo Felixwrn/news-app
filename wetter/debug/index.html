@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>WRN Racing Radar</title>
+
+<link
+href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+rel="stylesheet"
+/>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+<style>
+
+body{
+    margin:0;
+    background:#000;
+    color:white;
+    font-family:Arial,sans-serif;
+    overflow:hidden;
+}
+
+#map{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+}
+
+.overlay{
+
+    position:absolute;
+
+    top:20px;
+    left:20px;
+
+    z-index:10;
+
+    width:360px;
+
+    background:rgba(10,10,10,0.92);
+
+    border:1px solid #1f1f1f;
+
+    border-radius:32px;
+
+    padding:28px;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 0 40px rgba(124,58,237,0.25);
+}
+
+.logo{
+
+    color:#7c3aed;
+
+    font-size:42px;
+
+    font-weight:bold;
+
+    margin-bottom:10px;
+}
+
+.subtitle{
+
+    color:#777;
+
+    margin-bottom:25px;
+
+    font-size:18px;
+}
+
+.card{
+
+    background:#111;
+
+    border:1px solid #222;
+
+    border-radius:24px;
+
+    padding:22px;
+
+    margin-bottom:18px;
+}
+
+.label{
+
+    color:#777;
+
+    margin-bottom:10px;
+
+    font-size:14px;
+}
+
+.value{
+
+    font-size:34px;
+
+    font-weight:bold;
+}
+
+.warning{
+
+    background:
+    linear-gradient(
+        90deg,
+        #ff3b30,
+        #ff9500
+    );
+
+    border-radius:24px;
+
+    padding:18px;
+
+    font-weight:bold;
+
+    margin-top:10px;
+
+    animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+
+    0%{
+        opacity:1;
+    }
+
+    50%{
+        opacity:0.82;
+    }
+
+    100%{
+        opacity:1;
+    }
+}
+
+.footer{
+
+    color:#666;
+
+    font-size:13px;
+
+    margin-top:20px;
+
+    text-align:center;
+}
+
+.timeline-container{
+
+    position:absolute;
+
+    left:50%;
+    bottom:20px;
+
+    transform:translateX(-50%);
+
+    z-index:10;
+
+    width:420px;
+
+    background:rgba(10,10,10,0.92);
+
+    border:1px solid #1f1f1f;
+
+    border-radius:24px;
+
+    padding:18px 24px;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 0 30px rgba(124,58,237,0.2);
+}
+
+.timeline-time{
+
+    text-align:center;
+
+    margin-bottom:14px;
+
+    color:white;
+
+    font-weight:bold;
+
+    font-size:18px;
+}
+
+.timeline-slider{
+
+    width:100%;
+
+    accent-color:#7c3aed;
+}
+
+.radar-badge{
+
+    position:absolute;
+
+    bottom:20px;
+    right:20px;
+
+    z-index:10;
+
+    background:rgba(10,10,10,0.92);
+
+    border:1px solid #1f1f1f;
+
+    border-radius:24px;
+
+    padding:16px 22px;
+
+    backdrop-filter:blur(20px);
+
+    color:#7c3aed;
+
+    font-weight:bold;
+
+    box-shadow:
+    0 0 30px rgba(124,58,237,0.2);
+}
+
+.maplibregl-popup-content{
+
+    background:#111 !important;
+
+    color:white !important;
+
+    border-radius:18px !important;
+
+    border:1px solid #333 !important;
+
+    padding:14px !important;
+
+    font-family:Arial,sans-serif !important;
+}
+
+.maplibregl-popup-tip{
+    border-top-color:#111 !important;
+}
+
+@media(max-width:900px){
+
+    .overlay{
+
+        width:calc(100% - 40px);
+
+        top:20px;
+        left:20px;
+    }
+
+    .timeline-container{
+
+        width:calc(100% - 40px);
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div class="overlay">
+
+    <div class="logo">
+        WRN Radar
+    </div>
+
+    <div class="subtitle">
+        Nürburgring Racing Weather
+    </div>
+
+    <div class="card">
+
+        <div class="label">
+            🌡 Temperatur
+        </div>
+
+        <div class="value" id="temp">
+            --°
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="label">
+            💨 Wind
+        </div>
+
+        <div class="value" id="wind">
+            -- km/h
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="label">
+            ⏱ Regenankunft
+        </div>
+
+        <div class="value" id="arrival">
+            Berechne...
+        </div>
+
+    </div>
+
+    <div class="warning" id="warning">
+        Lade Wetterwarnung...
+    </div>
+
+    <div class="footer">
+        WRN Weather Racing • Nürburgring Edition
+    </div>
+
+</div>
+
+<div class="radar-badge">
+    LIVE RADAR
+</div>
+
+<div class="timeline-container">
+
+    <div class="timeline-time" id="timelineTime">
+        Lade Radarzeit...
+    </div>
+
+    <input
+        type="range"
+        min="0"
+        max="0"
+        value="0"
+        id="timelineSlider"
+        class="timeline-slider"
+    />
+
+</div>
+
+<script>
+
+const ring = {
+    lat:50.3351,
+    lon:6.9474
+};
+
+const map = new maplibregl.Map({
+
+    container:"map",
+
+    style:
+    "https://demotiles.maplibre.org/style.json",
+
+    center:[ring.lon, ring.lat],
+
+    zoom:10,
+
+    maxZoom:13,
+
+    minZoom:7
+});
+
+/* MARKER */
+
+const popup = new maplibregl.Popup({
+    offset:25
+})
+.setHTML(`
+
+    <div style="font-size:16px;font-weight:bold;">
+        🏁 Nürburgring Boxengasse
+    </div>
+
+    <div style="margin-top:8px;color:#aaa;">
+        WRN Racing Radar Standort
+    </div>
+
+`);
+
+const marker = new maplibregl.Marker({
+    color:"#7c3aed"
+})
+.setLngLat([
+    ring.lon,
+    ring.lat
+])
+.setPopup(popup)
+.addTo(map);
+
+/* HOVER FÜR PC */
+
+marker.getElement().addEventListener("mouseenter", () => {
+
+    popup.addTo(map);
+});
+
+marker.getElement().addEventListener("mouseleave", () => {
+
+    popup.remove();
+});
+
+let radarFrames = [];
+let currentFrame = 0;
+let radarLayerId = "radar-layer";
+
+async function loadRadar(){
+
+    try{
+
+        const response =
+        await fetch(
+            "https://api.rainviewer.com/public/weather-maps.json"
+        );
+
+        const data =
+        await response.json();
+
+        radarFrames = [
+
+            ...data.radar.past,
+
+            ...(data.radar.nowcast || [])
+
+        ];
+
+        /* FAKE FORECAST */
+
+        if((data.radar.nowcast || []).length === 0){
+
+            const lastFrame =
+            data.radar.past[
+                data.radar.past.length - 1
+            ];
+
+            for(let i = 1; i <= 12; i++){
+
+                radarFrames.push({
+
+                    path:lastFrame.path,
+
+                    time:lastFrame.time + (i * 300),
+
+                    fake:true
+                });
+            }
+        }
+
+        const slider =
+        document.getElementById("timelineSlider");
+
+        slider.max =
+        radarFrames.length - 1;
+
+        const now =
+        Date.now() / 1000;
+
+        let closestIndex = 0;
+
+        let smallestDiff =
+        Infinity;
+
+        radarFrames.forEach((frame, index) => {
+
+            const diff =
+            Math.abs(frame.time - now);
+
+            if(diff < smallestDiff){
+
+                smallestDiff = diff;
+
+                closestIndex = index;
+            }
+        });
+
+        currentFrame =
+        Math.max(
+            closestIndex - 2,
+            0
+        );
+
+        slider.value =
+        currentFrame;
+
+        slider.addEventListener("input", event => {
+
+            currentFrame =
+            parseInt(event.target.value);
+
+            updateRadar();
+        });
+
+        startRadarAnimation();
+
+    }catch(error){
+
+        console.error(error);
+    }
+}
+
+function startRadarAnimation(){
+
+    updateRadar();
+
+    setInterval(() => {
+
+        currentFrame++;
+
+        if(currentFrame >= radarFrames.length){
+
+            currentFrame = 0;
+        }
+
+        document
+        .getElementById("timelineSlider")
+        .value = currentFrame;
+
+        updateRadar();
+
+    }, 800);
+}
+
+function updateRadar(){
+
+    if(radarFrames.length === 0)
+        return;
+
+    const frame =
+    radarFrames[currentFrame];
+
+    let opacity = 0.75;
+
+    if(frame.fake){
+
+        opacity = 0.45;
+    }
+
+    const radarDate =
+    new Date(frame.time * 1000);
+
+    const formattedTime =
+    radarDate.toLocaleTimeString(
+        "de-DE",
+        {
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
+
+    document
+    .getElementById("timelineTime")
+    .innerText =
+    `🌧 Radarzeit: ${formattedTime}`;
+
+    const tileUrl =
+    `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+
+    if(map.getLayer(radarLayerId)){
+
+        map.removeLayer(radarLayerId);
+    }
+
+    if(map.getSource(radarLayerId)){
+
+        map.removeSource(radarLayerId);
+    }
+
+    map.addSource(radarLayerId, {
+
+        type:"raster",
+
+        tiles:[tileUrl],
+
+        tileSize:256
+    });
+
+    map.addLayer({
+
+        id:radarLayerId,
+
+        type:"raster",
+
+        source:radarLayerId,
+
+        paint:{
+            "raster-opacity":opacity
+        }
+    });
+}
+
+async function loadWeather(){
+
+    try{
+
+        const api =
+        `https://api.open-meteo.com/v1/forecast?latitude=${ring.lat}&longitude=${ring.lon}&current=temperature_2m,wind_speed_10m&hourly=rain&daily=weather_code&forecast_hours=24&timezone=auto`;
+
+        const response =
+        await fetch(api);
+
+        const data =
+        await response.json();
+
+        document
+        .getElementById("temp")
+        .innerText =
+        `${Math.round(data.current.temperature_2m)}°`;
+
+        document
+        .getElementById("wind")
+        .innerText =
+        `${Math.round(data.current.wind_speed_10m)} km/h`;
+
+        /* REGENANKUNFT */
+
+        let arrivalText =
+        "Kein Regen erwartet";
+
+        for(let i = 0; i < data.hourly.time.length; i++){
+
+            const rain =
+            data.hourly.rain[i];
+
+            if(rain > 0.2){
+
+                const rainTime =
+                new Date(data.hourly.time[i]);
+
+                const formatted =
+                rainTime.toLocaleTimeString(
+                    "de-DE",
+                    {
+                        hour:"2-digit",
+                        minute:"2-digit"
+                    }
+                );
+
+                arrivalText =
+                `🌧 Ab ${formatted}`;
+
+                break;
+            }
+        }
+
+        document
+        .getElementById("arrival")
+        .innerText =
+        arrivalText;
+
+        const code =
+        data.daily.weather_code[0];
+
+        let warning =
+        "✅ Keine Wetterwarnung";
+
+        if(code >= 95){
+
+            warning =
+            "⛈ Gewitter am Nürburgring möglich";
+        }
+
+        else if(code >= 61 && code <= 67){
+
+            warning =
+            "🌧 Starkregen möglich";
+        }
+
+        else if(code >= 71 && code <= 77){
+
+            warning =
+            "❄️ Schnee oder Hagel möglich";
+        }
+
+        document
+        .getElementById("warning")
+        .innerText =
+        warning;
+
+    }catch(error){
+
+        console.error(error);
+    }
+}
+
+map.on("load", () => {
+
+    loadRadar();
+
+    loadWeather();
+});
+
+setInterval(() => {
+
+    loadWeather();
+
+}, 60000);
+
+</script>
+
+</body>
+</html>
