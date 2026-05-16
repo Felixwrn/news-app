@@ -355,9 +355,28 @@ const map = new maplibregl.Map({
 
     container:"map",
 
-    style:
-    "https://demotiles.maplibre.org/style.json",
-
+    style:{
+    version:8,
+    sources:{
+        osm:{
+            type:"raster",
+            tiles:[
+                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            ],
+            tileSize:256,
+            attribution:"© OpenStreetMap"
+        }
+    },
+    layers:[
+        {
+            id:"osm",
+            type:"raster",
+            source:"osm"
+        }
+    ]
+}
     center:[ring.lon, ring.lat],
 
     zoom:4,
