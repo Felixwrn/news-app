@@ -225,6 +225,41 @@ body{
     0 0 30px rgba(124,58,237,0.2);
 }
 
+.maplibregl-popup-content{
+
+    background:#111 !important;
+
+    color:white !important;
+
+    border-radius:18px !important;
+
+    border:1px solid #333 !important;
+
+    padding:14px !important;
+
+    font-family:Arial,sans-serif !important;
+}
+
+.maplibregl-popup-tip{
+    border-top-color:#111 !important;
+}
+
+@media(max-width:900px){
+
+    .overlay{
+
+        width:calc(100% - 40px);
+
+        top:20px;
+        left:20px;
+    }
+
+    .timeline-container{
+
+        width:calc(100% - 40px);
+    }
+}
+
 </style>
 </head>
 
@@ -325,21 +360,51 @@ const map = new maplibregl.Map({
 
     center:[ring.lon, ring.lat],
 
-    zoom:8,
+    zoom:4,
 
-    maxZoom:11,
+    maxZoom:5,
 
-    minZoom:6
+    minZoom:3
 });
 
-new maplibregl.Marker({
+/* MARKER */
+
+const popup = new maplibregl.Popup({
+    offset:25
+})
+.setHTML(`
+
+    <div style="font-size:16px;font-weight:bold;">
+        🏁 Nürburgring Boxengasse
+    </div>
+
+    <div style="margin-top:8px;color:#aaa;">
+        WRN Racing Radar Standort
+    </div>
+
+`);
+
+const marker = new maplibregl.Marker({
     color:"#7c3aed"
 })
 .setLngLat([
     ring.lon,
     ring.lat
 ])
+.setPopup(popup)
 .addTo(map);
+
+/* HOVER FÜR PC */
+
+marker.getElement().addEventListener("mouseenter", () => {
+
+    popup.addTo(map);
+});
+
+marker.getElement().addEventListener("mouseleave", () => {
+
+    popup.remove();
+});
 
 let radarFrames = [];
 let currentFrame = 0;
