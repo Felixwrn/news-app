@@ -292,8 +292,6 @@ body{
     LIVE RADAR
 </div>
 
-<!-- TIMELINE -->
-
 <div class="timeline-container">
 
     <div class="timeline-time" id="timelineTime">
@@ -327,11 +325,11 @@ const map = new maplibregl.Map({
 
     center:[ring.lon, ring.lat],
 
-    zoom:4,
+    zoom:8,
 
-    maxZoom:4,
+    maxZoom:11,
 
-    minZoom:4
+    minZoom:6
 });
 
 new maplibregl.Marker({
@@ -362,16 +360,27 @@ async function loadRadar(){
 
         radarFrames = [
 
-    ...data.radar.past,
+            ...data.radar.past,
 
-    ...data.radar.nowcast
+            ...data.radar.nowcast
 
-];
+        ];
 
         const slider =
         document.getElementById("timelineSlider");
 
         slider.max = radarFrames.length - 1;
+
+        /* START 10 MIN VOR JETZT */
+
+        currentFrame =
+        Math.max(
+            radarFrames.length - 3,
+            0
+        );
+
+        slider.value =
+        currentFrame;
 
         slider.addEventListener("input", event => {
 
@@ -398,6 +407,7 @@ function startRadarAnimation(){
         currentFrame++;
 
         if(currentFrame >= radarFrames.length){
+
             currentFrame = 0;
         }
 
@@ -415,7 +425,8 @@ function updateRadar(){
     if(radarFrames.length === 0)
         return;
 
-    const frame = radarFrames[currentFrame];
+    const frame =
+    radarFrames[currentFrame];
 
     const radarDate =
     new Date(frame.time * 1000);
@@ -438,10 +449,12 @@ function updateRadar(){
     `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/6/1_1.png`;
 
     if(map.getLayer(radarLayerId)){
+
         map.removeLayer(radarLayerId);
     }
 
     if(map.getSource(radarLayerId)){
+
         map.removeSource(radarLayerId);
     }
 
@@ -503,20 +516,27 @@ async function loadWeather(){
         "✅ Keine Wetterwarnung";
 
         if(code >= 95){
-            warning = "⛈ Gewitter am Nürburgring möglich";
+
+            warning =
+            "⛈ Gewitter am Nürburgring möglich";
         }
 
         else if(code >= 61 && code <= 67){
-            warning = "🌧 Starkregen möglich";
+
+            warning =
+            "🌧 Starkregen möglich";
         }
 
         else if(code >= 71 && code <= 77){
-            warning = "❄️ Schnee oder Hagel möglich";
+
+            warning =
+            "❄️ Schnee oder Hagel möglich";
         }
 
         document
         .getElementById("warning")
-        .innerText = warning;
+        .innerText =
+        warning;
 
     }catch(error){
 
