@@ -421,24 +421,23 @@ async function loadRadar(){
 
         ];
 
-        if((data.radar.nowcast || []).length === 0){
+        /* 3 STUNDEN FAKE FUTURE */
 
-            const lastFrame =
-            data.radar.past[
-                data.radar.past.length - 1
-            ];
+        const lastFrame =
+        radarFrames[
+            radarFrames.length - 1
+        ];
 
-            for(let i = 1; i <= 12; i++){
+        for(let i = 1; i <= 36; i++){
 
-                radarFrames.push({
+            radarFrames.push({
 
-                    path:lastFrame.path,
+                path:lastFrame.path,
 
-                    time:lastFrame.time + (i * 300),
+                time:lastFrame.time + (i * 300),
 
-                    fake:true
-                });
-            }
+                fake:true
+            });
         }
 
         const slider =
@@ -527,7 +526,7 @@ function updateRadar(){
 
     if(frame.fake){
 
-        opacity = 0.45;
+        opacity = 0.35;
     }
 
     const radarDate =
@@ -542,10 +541,18 @@ function updateRadar(){
         }
     );
 
+    let futureText = "";
+
+    if(frame.fake){
+
+        futureText =
+        " • Prognose";
+    }
+
     document
     .getElementById("timelineTime")
     .innerText =
-    `🌧 Radarzeit: ${formattedTime}`;
+    `🌧 Radarzeit: ${formattedTime}${futureText}`;
 
     const tileUrl =
     `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
