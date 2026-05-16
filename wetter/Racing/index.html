@@ -1,319 +1,3 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>WRN Racing Radar</title>
-
-<link
-href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
-rel="stylesheet"
-/>
-
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-
-<style>
-
-body{
-    margin:0;
-    background:#000;
-    color:white;
-    font-family:Arial,sans-serif;
-    overflow:hidden;
-}
-
-#map{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-}
-
-.overlay{
-
-    position:absolute;
-
-    top:20px;
-    left:20px;
-
-    z-index:10;
-
-    width:360px;
-
-    background:rgba(10,10,10,0.92);
-
-    border:1px solid #1f1f1f;
-
-    border-radius:32px;
-
-    padding:28px;
-
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 40px rgba(124,58,237,0.25);
-}
-
-.logo{
-
-    color:#7c3aed;
-
-    font-size:42px;
-
-    font-weight:bold;
-
-    margin-bottom:10px;
-}
-
-.subtitle{
-
-    color:#777;
-
-    margin-bottom:25px;
-
-    font-size:18px;
-}
-
-.card{
-
-    background:#111;
-
-    border:1px solid #222;
-
-    border-radius:24px;
-
-    padding:22px;
-
-    margin-bottom:18px;
-}
-
-.label{
-
-    color:#777;
-
-    margin-bottom:10px;
-
-    font-size:14px;
-}
-
-.value{
-
-    font-size:34px;
-
-    font-weight:bold;
-}
-
-.warning{
-
-    background:
-    linear-gradient(
-        90deg,
-        #ff3b30,
-        #ff9500
-    );
-
-    border-radius:24px;
-
-    padding:18px;
-
-    font-weight:bold;
-
-    margin-top:10px;
-
-    animation:pulse 2s infinite;
-}
-
-@keyframes pulse{
-
-    0%{
-        opacity:1;
-    }
-
-    50%{
-        opacity:0.82;
-    }
-
-    100%{
-        opacity:1;
-    }
-}
-
-.footer{
-
-    color:#666;
-
-    font-size:13px;
-
-    margin-top:20px;
-
-    text-align:center;
-}
-
-.timeline-container{
-
-    position:absolute;
-
-    right:20px;
-    bottom:20px;
-
-    z-index:10;
-
-    width:420px;
-
-    background:rgba(10,10,10,0.92);
-
-    border:1px solid #1f1f1f;
-
-    border-radius:24px;
-
-    padding:18px 24px;
-
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 30px rgba(124,58,237,0.2);
-}
-
-.timeline-time{
-
-    text-align:center;
-
-    margin-bottom:14px;
-
-    color:white;
-
-    font-weight:bold;
-
-    font-size:18px;
-}
-
-.timeline-slider{
-
-    width:100%;
-
-    accent-color:#7c3aed;
-}
-
-.maplibregl-popup-content{
-
-    background:#111 !important;
-
-    color:white !important;
-
-    border-radius:18px !important;
-
-    border:1px solid #333 !important;
-
-    padding:14px !important;
-
-    font-family:Arial,sans-serif !important;
-}
-
-.maplibregl-popup-tip{
-    border-top-color:#111 !important;
-}
-
-@media(max-width:900px){
-
-    .overlay{
-
-        width:calc(100% - 40px);
-
-        top:20px;
-        left:20px;
-    }
-
-    .timeline-container{
-
-        width:calc(100% - 40px);
-
-        right:20px;
-        bottom:20px;
-    }
-}
-
-</style>
-</head>
-
-<body>
-
-<div id="map"></div>
-
-<div class="overlay">
-
-    <div class="logo">
-        WRN Radar
-    </div>
-
-    <div class="subtitle">
-        Nürburgring Racing Weather
-    </div>
-
-    <div class="card">
-
-        <div class="label">
-            🌡 Temperatur
-        </div>
-
-        <div class="value" id="temp">
-            --°
-        </div>
-
-    </div>
-
-    <div class="card">
-
-        <div class="label">
-            💨 Wind
-        </div>
-
-        <div class="value" id="wind">
-            -- km/h
-        </div>
-
-    </div>
-
-    <div class="card">
-
-        <div class="label">
-            ⏱ Regenankunft
-        </div>
-
-        <div class="value" id="arrival">
-            Berechne...
-        </div>
-
-    </div>
-
-    <div class="warning" id="warning">
-        Lade Wetterwarnung...
-    </div>
-
-    <div class="footer">
-        WRN Weather Racing • Nürburgring Edition
-    </div>
-
-</div>
-
-<div class="timeline-container">
-
-    <div class="timeline-time" id="timelineTime">
-        Lade Radarzeit...
-    </div>
-
-    <input
-        type="range"
-        min="0"
-        max="0"
-        value="0"
-        id="timelineSlider"
-        class="timeline-slider"
-    />
-
-</div>
-
 <script>
 
 const ring = {
@@ -421,7 +105,7 @@ async function loadRadar(){
 
         ];
 
-        /* 3 STUNDEN ZUKUNFT */
+        /* 3 STUNDEN FAKE FUTURE */
 
         const lastFrame =
         radarFrames[
@@ -438,8 +122,8 @@ async function loadRadar(){
 
                 fake:true,
 
-                offsetX:i * 0.25,
-                offsetY:i * -0.12
+                moveX:i * 0.15,
+                moveY:i * -0.08
             });
         }
 
@@ -525,13 +209,6 @@ function updateRadar(){
     const frame =
     radarFrames[currentFrame];
 
-    let opacity = 0.75;
-
-    if(frame.fake){
-
-        opacity = 0.35;
-    }
-
     const radarDate =
     new Date(frame.time * 1000);
 
@@ -588,14 +265,32 @@ function updateRadar(){
         source:radarLayerId,
 
         paint:{
-            "raster-opacity":opacity,
-            "raster-translate":[
-                frame.offsetX || 0,
-                frame.offsetY || 0
-            ],
-            "raster-translate-anchor":"viewport"
+
+            "raster-opacity":
+            frame.fake ? 0.35 : 0.75
         }
     });
+
+    /* WOLKEN LEICHT BEWEGEN */
+
+    if(frame.fake){
+
+        map.setPaintProperty(
+            radarLayerId,
+            "raster-opacity",
+            0.35
+        );
+
+        map.panBy(
+            [
+                frame.moveX,
+                frame.moveY
+            ],
+            {
+                animate:false
+            }
+        );
+    }
 }
 
 async function loadWeather(){
@@ -704,6 +399,3 @@ setInterval(() => {
 }, 60000);
 
 </script>
-
-</body>
-</html>
