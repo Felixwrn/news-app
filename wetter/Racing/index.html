@@ -311,6 +311,7 @@ new maplibregl.Marker({
 
 let frames = [];
 let current = 0;
+let radarInterval = null;
 
 async function loadRadar(){
 
@@ -359,16 +360,40 @@ async function loadRadar(){
 
     updateRadar();
 
+    startRadarAnimation();
+}
+
+function startRadarAnimation(){
+
+    if(radarInterval){
+
+        clearInterval(
+            radarInterval
+        );
+    }
+
+    radarInterval =
     setInterval(() => {
 
         current++;
 
+        /* AM ENDE STOPPEN */
+
         if(current >= frames.length){
 
-            current = 0;
+            current =
+            frames.length - 1;
+
+            clearInterval(
+                radarInterval
+            );
+
+            return;
         }
 
-        slider.value =
+        document
+        .getElementById("slider")
+        .value =
         current;
 
         updateRadar();
