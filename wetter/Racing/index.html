@@ -225,37 +225,6 @@ body{
     0 0 30px rgba(124,58,237,0.2);
 }
 
-#debugBox{
-
-    position:absolute;
-
-    top:20px;
-    right:20px;
-
-    z-index:999;
-
-    width:300px;
-
-    background:rgba(0,0,0,0.92);
-
-    border:1px solid #7c3aed;
-
-    border-radius:20px;
-
-    padding:16px;
-
-    font-size:13px;
-
-    color:#00ff88;
-
-    font-family:monospace;
-
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 20px rgba(124,58,237,0.3);
-}
-
 </style>
 </head>
 
@@ -352,12 +321,6 @@ body{
 
 </div>
 
-<div id="debugBox">
-
-    Debug lädt...
-
-</div>
-
 <script>
 
 const ring = {
@@ -405,25 +368,6 @@ async function loadRadar(){
 
         const data =
         await response.json();
-
-        document
-        .getElementById("debugBox")
-        .innerHTML = `
-
-NOWCAST FRAMES:
-${data.radar.nowcast ? data.radar.nowcast.length : 0}
-
-<br><br>
-
-PAST FRAMES:
-${data.radar.past.length}
-
-<br><br>
-
-AKTUELLE ZEIT:
-${new Date().toLocaleTimeString()}
-
-`;
 
         radarFrames = [
 
@@ -504,11 +448,6 @@ ${new Date().toLocaleTimeString()}
     }catch(error){
 
         console.error(error);
-
-        document
-        .getElementById("debugBox")
-        .innerHTML =
-        "FEHLER:<br><br>" + error;
     }
 }
 
