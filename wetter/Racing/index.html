@@ -27,19 +27,6 @@ body{
     inset:0;
 }
 
-#futureRadar{
-
-    position:absolute;
-
-    inset:0;
-
-    pointer-events:none;
-
-    z-index:3;
-
-    opacity:0;
-}
-
 .overlay{
 
     position:absolute;
@@ -167,14 +154,27 @@ body{
     accent-color:#7c3aed;
 }
 
+@media(max-width:900px){
+
+    .overlay{
+
+        width:calc(100% - 40px);
+    }
+
+    .timeline{
+
+        width:calc(100% - 40px);
+
+        right:20px;
+    }
+}
+
 </style>
 </head>
 
 <body>
 
 <div id="map"></div>
-
-<canvas id="futureRadar"></canvas>
 
 <div class="overlay">
 
@@ -309,33 +309,8 @@ new maplibregl.Marker({
 ])
 .addTo(map);
 
-const canvas =
-document.getElementById(
-    "futureRadar"
-);
-
-const ctx =
-canvas.getContext("2d");
-
-function resizeCanvas(){
-
-    canvas.width =
-    window.innerWidth;
-
-    canvas.height =
-    window.innerHeight;
-}
-
-resizeCanvas();
-
-window.addEventListener(
-    "resize",
-    resizeCanvas
-);
-
 let frames = [];
 let current = 0;
-let lastRadarImage = null;
 
 async function loadRadar(){
 
@@ -354,28 +329,6 @@ async function loadRadar(){
         ...(data.radar.nowcast || [])
     ];
 
-    const last =
-    frames[
-        frames.length - 1
-    ];
-
-    /* 3 STUNDEN FUTURE */
-
-    for(let i = 1; i <= 36; i++){
-
-        frames.push({
-
-            path:last.path,
-
-            time:last.time + (i * 300),
-
-            fake:true,
-
-            moveX:i * 6,
-            moveY:i * -3
-        });
-    }
-
     const slider =
     document.getElementById("slider");
 
@@ -383,7 +336,10 @@ async function loadRadar(){
     frames.length - 1;
 
     current =
-    frames.length - 40;
+    Math.max(
+        frames.length - 3,
+        0
+    );
 
     slider.value =
     current;
@@ -461,12 +417,7 @@ function updateRadar(){
         source:"radar",
 
         paint:{
-            "raster-opacity":
-            frame.fake
-            ?
-            0.15
-            :
-            0.75
+            "raster-opacity":0.75
         }
     });
 
@@ -487,69 +438,7 @@ function updateRadar(){
     document
     .getElementById("timelineTime")
     .innerText =
-    frame.fake
-    ?
-    `🌧 ${formatted} • Prognose`
-    :
     `🌧 ${formatted}`;
-
-    /* LETZTES RADARBILD SPEICHERN */
-
-    if(!frame.fake){
-
-        const img =
-        new Image();
-
-        img.crossOrigin =
-        "anonymous";
-
-        img.src =
-        `https://tilecache.rainviewer.com${frame.path}/256/8/129/84/2/1_1.png`;
-
-        img.onload = () => {
-
-            lastRadarImage =
-            img;
-        };
-
-        canvas.style.opacity =
-        "0";
-    }
-
-    /* FUTURE CLOUDS */
-
-    if(
-        frame.fake &&
-        lastRadarImage
-    ){
-
-        canvas.style.opacity =
-        "0.55";
-
-        ctx.clearRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-        const moveX =
-        frame.moveX;
-
-        const moveY =
-        frame.moveY;
-
-        ctx.drawImage(
-
-            lastRadarImage,
-
-            moveX,
-            moveY,
-
-            canvas.width,
-            canvas.height
-        );
-    }
 }
 
 async function loadWeather(){
