@@ -152,6 +152,43 @@ body{
     width:100%;
 
     accent-color:#7c3aed;
+
+    margin-bottom:18px;
+}
+
+.controls{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:14px;
+}
+
+.control-btn{
+
+    border:none;
+
+    background:#7c3aed;
+
+    color:white;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    border-radius:18px;
+
+    padding:12px 24px;
+
+    cursor:pointer;
+
+    transition:0.2s;
+}
+
+.control-btn:hover{
+
+    transform:scale(1.05);
 }
 
 @media(max-width:900px){
@@ -243,6 +280,24 @@ body{
         value="0"
     />
 
+    <div class="controls">
+
+        <button
+            class="control-btn"
+            id="playBtn"
+        >
+            ▶ Play
+        </button>
+
+        <button
+            class="control-btn"
+            id="pauseBtn"
+        >
+            ⏸ Pause
+        </button>
+
+    </div>
+
 </div>
 
 <script>
@@ -289,11 +344,11 @@ const map = new maplibregl.Map({
         ring.lat
     ],
 
-    zoom:5,
+    zoom:4,
 
     minZoom:3,
 
-    maxZoom:6.45
+    maxZoom:5
 });
 
 new maplibregl.Marker({
@@ -312,6 +367,7 @@ new maplibregl.Marker({
 let frames = [];
 let current = 0;
 let radarInterval = null;
+let isPlaying = false;
 
 async function loadRadar(){
 
@@ -359,34 +415,28 @@ async function loadRadar(){
     );
 
     updateRadar();
-
-    startRadarAnimation();
 }
 
 function startRadarAnimation(){
 
-    if(radarInterval){
+    if(isPlaying)
+        return;
 
-        clearInterval(
-            radarInterval
-        );
-    }
+    isPlaying = true;
 
     radarInterval =
     setInterval(() => {
 
         current++;
 
-        /* AM ENDE STOPPEN */
+        /* STOPPEN WENN FERTIG */
 
         if(current >= frames.length){
 
             current =
             frames.length - 1;
 
-            clearInterval(
-                radarInterval
-            );
+            stopRadarAnimation();
 
             return;
         }
@@ -399,6 +449,15 @@ function startRadarAnimation(){
         updateRadar();
 
     }, 800);
+}
+
+function stopRadarAnimation(){
+
+    isPlaying = false;
+
+    clearInterval(
+        radarInterval
+    );
 }
 
 function updateRadar(){
@@ -420,7 +479,7 @@ function updateRadar(){
     }
 
     const tileUrl =
-    `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/7/1_1.png`;
+    `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
 
     map.addSource("radar", {
 
@@ -465,6 +524,26 @@ function updateRadar(){
     .innerText =
     `🌧 ${formatted}`;
 }
+
+document
+.getElementById("playBtn")
+.addEventListener(
+    "click",
+    () => {
+
+        startRadarAnimation();
+    }
+);
+
+document
+.getElementById("pauseBtn")
+.addEventListener(
+    "click",
+    () => {
+
+        stopRadarAnimation();
+    }
+);
 
 async function loadWeather(){
 
